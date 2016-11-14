@@ -228,6 +228,11 @@ class BlockManagerMaster(
     }
   }
 
+  /** Broadcast the JobId */
+  def broadcastJobId(jobId: Int): Unit = {
+    tell(StartBroadcastJobId(jobId))
+  }
+
   /** Send a one-way message to the master endpoint, to which we expect it to reply with true. */
   private def tell(message: Any) {
     if (!driverEndpoint.askWithRetry[Boolean](message)) {

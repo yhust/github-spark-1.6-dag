@@ -22,9 +22,8 @@ import java.util.{HashMap => JHashMap}
 import scala.collection.mutable
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
-
-import org.apache.spark.rpc.{RpcEndpointRef, RpcEnv, RpcCallContext, ThreadSafeRpcEndpoint}
-import org.apache.spark.{Logging, SparkConf}
+import org.apache.spark.rpc.{RpcCallContext, RpcEndpointRef, RpcEnv, ThreadSafeRpcEndpoint}
+import org.apache.spark.{Logging, SparkConf, SparkException}
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.scheduler._
 import org.apache.spark.storage.BlockManagerMessages._
@@ -124,6 +123,10 @@ class BlockManagerMasterEndpoint(
           }
         case None => context.reply(false)
       }
+
+    case StartBroadcastJobId(jobId) =>
+      broadcastJobId(jobId)
+      context.reply(true)
   }
 
   private def removeRdd(rddId: Int): Future[Seq[Int]] = {
@@ -398,6 +401,12 @@ class BlockManagerMasterEndpoint(
     }
   }
 
+  private def broadcastJobId(jobId: Int): Unit = {
+    for (slave <- blockManagerInfo.values) {
+      slave.broadcastJobId(jobId)
+    }
+  }
+
   override def onStop(): Unit = {
     askThreadPool.shutdownNow()
   }
@@ -518,6 +527,13 @@ private[spark] class BlockManagerInfo(
       _blocks.remove(blockId)
     }
     _cachedBlocks -= blockId
+  }
+
+  def broadcastJobId(jobId: Int) {
+    if (!slaveEndpoint.askWithRetry[Boolean](BroadcastJobId(jobId))) {
+      throw new SparkException("SlaveEndpoint returned false " +
+        "during broadcasting jobid, expected true.")
+    }
   }
 
   def remainingMem: Long = _remainingMem

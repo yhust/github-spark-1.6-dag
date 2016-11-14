@@ -42,6 +42,9 @@ private[spark] object BlockManagerMessages {
   case class RemoveBroadcast(broadcastId: Long, removeFromDriver: Boolean = true)
     extends ToBlockManagerSlave
 
+  // Broadcast JobId to slave.
+  case class BroadcastJobId(jobId: Int) extends ToBlockManagerSlave
+
   /**
    * Driver -> Executor message to trigger a thread dump.
    */
@@ -114,4 +117,7 @@ private[spark] object BlockManagerMessages {
   case class BlockManagerHeartbeat(blockManagerId: BlockManagerId) extends ToBlockManagerMaster
 
   case class HasCachedBlocks(executorId: String) extends ToBlockManagerMaster
+
+  // Initiate broadcast of jobid
+  case class StartBroadcastJobId(jobId: Int) extends ToBlockManagerMaster
 }
