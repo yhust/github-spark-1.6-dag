@@ -218,12 +218,21 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
   }
 
   override def remove(blockId: BlockId): Boolean = memoryManager.synchronized {
-    val entry = entries.synchronized { entries.remove(blockId) }
-    val ref_count = currentRefMap(blockId)
-    currentRefMap.synchronized { currentRefMap.remove(blockId)}
+    val entry = entries.synchronized {
+      if (entries.containsKey(blockId)){
+        entries.remove(blockId)
+      }
+      else {
+        null
+      }
+    }
+    if (blockId.isRDD){
+      val ref_count = currentRefMap(blockId)
+      currentRefMap.synchronized { currentRefMap.remove(blockId)}
+    }
     if (entry != null) {
       memoryManager.releaseStorageMemory(entry.size)
-      logInfo(s"yyh: Block $blockId of size ${entry.size} dropped, ref count $ref_count" +
+      logInfo(s"yyh: Block $blockId of size ${entry.size} dropped" +
         s"from memory (free ${maxMemory - blocksMemoryUsed})")
       true
     } else {
@@ -241,7 +250,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     logInfo("MemoryStore cleared")
   }
 
-  /**
+  /*
    * Unroll the given block in memory safely.
    *
    * The safety of this operation refers to avoiding potential OOM exceptions caused by
@@ -425,7 +434,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
         }
         else {
           refMap.synchronized {refMap.put(blockId, 1)}
-          logError(s"yyh: block $blockId is not in the ref profile")
+          logInfo(s"yyh: block $blockId is not in the ref profile")
         }
       }
       if (enoughMemory) {
@@ -434,10 +443,13 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
         entries.synchronized {
           entries.put(blockId, entry)
         }
-        currentRefMap.synchronized{
-          currentRefMap.put(blockId, refMap(blockId))
-          val ref_count = refMap(blockId)
-          logInfo(s"yyh: put $blockId in current ref map: $ref_count")
+        if(blockId.isRDD){ // yyh: we only care the ref counts of rdd blocks
+          currentRefMap.synchronized{
+            currentRefMap.put(blockId, refMap(blockId))
+            val ref_count = refMap(blockId)
+            logInfo(s"yyh: put $blockId in current ref map: $ref_count")
+          }
+
         }
         val valuesOrBytes = if (deserialized) "values" else "bytes"
         logInfo("Block %s stored as %s in memory (estimated size %s, free %s)".format(
@@ -478,17 +490,25 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       var freedMemory = 0L
       val rddToAdd = blockId.flatMap(getRddId)
       val selectedBlocks = new ArrayBuffer[BlockId]
-      logInfo(s"yyh: LRU: Free space for block $blockId, current entries $entries")
+      // logInfo(s"yyh: LRU: Free space for block $blockId, current entries $entries")
+      // be cautious to print all the entries, for concurrency issues
       // This is synchronized to ensure that the set of entries is not changed
       // (because of getValue or getBytes) while traversing the iterator, as that
       // can lead to exceptions.
+      // var blockToCacheRefCount = Int.MaxValue
+      // yyh: if this is a broadcast block, cache it anyway
+      // if (blockManager.refProfile.exists(_._1 == rddToAdd.getOrElse(-1))) {
+        // blockToCacheRefCount = blockManager.refProfile(rddToAdd.getOrElse(-1))
+      // }
+
       entries.synchronized {
         // For LRCs if the ref count is zero, skip the checking
         val iterator = entries.entrySet().iterator()
         while (freedMemory < space && iterator.hasNext) {
           val pair = iterator.next()
           val blockId = pair.getKey
-          if (rddToAdd.isEmpty || rddToAdd != getRddId(blockId)) {
+          // For fair comparison, only block rdd will be considered for eviction as in LRC policies
+          if (blockId.isRDD) { // rddToAdd.isEmpty || rddToAdd != getRddId(blockId)
             selectedBlocks += blockId
             freedMemory += pair.getValue.size
           }

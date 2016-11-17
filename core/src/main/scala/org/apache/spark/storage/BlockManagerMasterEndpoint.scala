@@ -65,8 +65,8 @@ class BlockManagerMasterEndpoint(
   private val appName = conf.getAppName.filter(!" ".contains(_))
   val path = System.getProperty("user.dir")
   val appDAG = path + "/" + appName + ".txt"
+  logInfo(s"yyh: Driver Endpoint tries to read profile: path: $appDAG")
   if (Files.exists(Paths.get(appDAG))) {
-    logInfo(s"yyh: Driver Endpoint tries to read profile: path: $appDAG")
     for (line <- Source.fromFile(appDAG).getLines()) {
       val z = line.split(":")
       refProfile(z(0).toInt) = z(1).toInt
@@ -75,8 +75,8 @@ class BlockManagerMasterEndpoint(
   }
 
   val jobDAG = path + "/" + appName + "-JobDAG.txt"
+  logInfo(s"yyh: Driver Endpoint tries to read profile by job: path: $jobDAG")
   if (Files.exists(Paths.get(jobDAG))) {
-    logInfo(s"yyh: Driver Endpoint tries to read profile by job: path: $jobDAG")
     for (line <- Source.fromFile(jobDAG).getLines()) {
       val z = line.split("-")
       val jobId = z(0).toInt
@@ -103,8 +103,8 @@ class BlockManagerMasterEndpoint(
   // In the case where a block whose peer is already evicted, the BlockManger should not report.
 
   val peers = path + "/" + appName + "-Peers.txt"
-  if (Files.exists(Paths.get(jobDAG))) {
-    logInfo(s"yyh: Driver Endpoint tries to read peers profile: path :$peers")
+  logInfo(s"yyh: Driver Endpoint tries to read peers profile: path :$peers")
+  if (Files.exists(Paths.get(peers))) {
     for (line <- Source.fromFile(peers).getLines()) {
       val z = line.split(":")
       peerProfile(z(0).toInt) = z(1).toInt // mutual peers, as later we only search by key
@@ -184,7 +184,7 @@ class BlockManagerMasterEndpoint(
       }
 
     case StartBroadcastJobId(jobId) =>
-      broadcastJobDAG(jobId, refProfile_By_Job(jobId))
+      broadcastJobDAG(jobId) // , refProfile_By_Job(jobId))
       context.reply(true)
 
     case ReportCacheHit(blockManagerId, hitCount, missCount) => // yyh
@@ -472,9 +472,9 @@ class BlockManagerMasterEndpoint(
     }
   }
 
-  private def broadcastJobDAG(jobId: Int, jobDAG: mutable.Map[Int, Int]): Unit = {
+  private def broadcastJobDAG(jobId: Int): Unit = {
     for (slave <- blockManagerInfo.values) {
-      slave.broadcastJobDAG(jobId, jobDAG)
+      slave.broadcastJobDAG(jobId)
     }
   }
 
@@ -559,12 +559,12 @@ class BlockManagerMasterEndpoint(
   override def onStop(): Unit = {
     val stopTime = System.currentTimeMillis
     val duration = stopTime - startTime
-    logInfo(s"yyh: log stoptime: $stopTime, duration: $duration")
+    logInfo(s"yyh: log stoptime: $stopTime, duration: $duration ms")
     logInfo(s"yyh: Closing blockMangerMasterEndPoint, RDD hit $RDDHit, RDD miss $RDDMiss")
     // val path = System.getProperty("user.dir")
-    val appId = conf.getAppId
+    val appName = conf.getAppName
     val fw = new FileWriter("result.txt", true) // true means append mode
-    fw.write(s"AppID: $appId, Runtime: $duration\n")
+    fw.write(s"AppName: $appName, Runtime: $duration\n")
     fw.write(s"RDD Hit\t$RDDHit\tRDD Miss\t$RDDMiss\n")
     fw.close()
     askThreadPool.shutdownNow()
@@ -688,7 +688,7 @@ private[spark] class BlockManagerInfo(
     _cachedBlocks -= blockId
   }
 
-  def broadcastJobDAG(jobId: Int, jobDAG: mutable.Map[Int, Int]) {
+  def broadcastJobDAG(jobId: Int) {
     // Currently since the job DAG is not profiled online, no need to broadcast it.
     // All job DAGs have been broadcast in the very beginning.
     if (!slaveEndpoint.askWithRetry[Boolean](BroadcastJobDAG(jobId))) {

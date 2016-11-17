@@ -216,7 +216,7 @@ private[spark] class BlockManager(
     peers = mutable.Map(peerProfile.toSeq: _*)
 
     logInfo(s"yyh: block manager $blockManagerId has read the refProfile")
-    for ((k, v) <- refProfile) printf("key: %s, value: %s\n", k, v)
+    // for ((k, v) <- refProfile) printf("key: %s, value: %s\n", k, v)
 
     // Register Executors' configuration with the local shuffle service, if one should exist.
     if (externalShuffleServiceEnabled && !blockManagerId.isDriver) {
@@ -260,9 +260,14 @@ private[spark] class BlockManager(
   def updateRefProfile(jobId: Int, thisRefProfile: Option[mutable.Map[Int, Int]]): Unit = {
     if (thisRefProfile.isEmpty) {
       // read job dag from profie
-      val jobProfile = refProfile_by_Job.get(jobId).get
-      logInfo(s"yyh: read refProfile of job $jobId: $jobProfile")
-      refProfile_online = jobProfile
+      val jobProfile = refProfile_by_Job.get(jobId)
+      if (jobProfile.isDefined){
+        logInfo(s"yyh: read refProfile of job $jobId: $jobProfile")
+        refProfile_online = jobProfile.get
+      }
+      else {
+        logInfo(s"yyh: refProfile of job $jobId not found!")
+      }
       // logInfo(s"yyh:  before merge: $refProfile_online")
       // mergeRefProfile(jobProfile)
       // logInfo(s"yyh:  after merge: $refProfile_online")
@@ -275,15 +280,17 @@ private[spark] class BlockManager(
       // logInfo(s"yyh:  before merge: $refProfile_online")
     }
     // Tell the memoryStore to update the ref counts of the existing blocks
-    memoryStore.updateRefCountByJobDAG(refProfile_online)
-  }
 
+    // yyh !!! only update it for online job DAG !!!!
+    // memoryStore.updateRefCountByJobDAG(refProfile_online)
+  }
+  /**
   private def mergeRefProfile(thisRefProfile: mutable.Map[Int, Int]): Unit = {
     refProfile_online = refProfile_online ++
     thisRefProfile.map{ case (k, v) => k -> ( v + refProfile_online.getOrElse(k, 0))}
     //   ++ : merge the right map to the left. for the shared key, use the value of the right map
   }
-
+  */
   /**
    * Report all blocks to the BlockManager again. This may be necessary if we are dropped
    * by the BlockManager and come back or if we become capable of recovering blocks on disk after
@@ -916,7 +923,9 @@ private[spark] class BlockManager(
           }
           else if (putBlockStatus.storageLevel == StorageLevel.DISK_ONLY){
             logInfo(s"yyh: $blockId is put on disk")
-            if (memoryStore.refMap.getOrElse(blockId, 0) > 0){
+            if (memoryStore.refMap.getOrElse(blockId, 0) > 0
+              && peers.contains(blockId.asRDDId.toString.split("_")(1).toInt)){
+              // if this block still has remaining ref count, it means its peer has not been evicted
               logInfo(s"yyh: $blockId is either rejected or evicted from cache" +
                 s" with nonzero ref count, notify the master of its loss")
               master.driverEndpoint.askWithRetry[Boolean](BlockWithPeerEvicted(blockId))

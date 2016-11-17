@@ -75,7 +75,7 @@ class BlockManagerSlaveEndpoint(
       context.reply(Utils.getThreadDump())
 
     case BroadcastJobDAG(jobId) => // yyh
-      blockManager.updateRefProfile(jobId, null)// the job DAG is currently not profiled online
+      blockManager.updateRefProfile(jobId, None)// the job DAG is currently not profiled online
       context.reply(true)
 
     case CheckPeersConservatively(blockId) => // yyh for all-or-nothing
