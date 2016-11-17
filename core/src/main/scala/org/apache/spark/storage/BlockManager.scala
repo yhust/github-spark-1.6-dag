@@ -282,7 +282,7 @@ private[spark] class BlockManager(
     // Tell the memoryStore to update the ref counts of the existing blocks
 
     // yyh !!! only update it for online job DAG !!!!
-    // memoryStore.updateRefCountByJobDAG(refProfile_online)
+    memoryStore.updateRefCountByJobDAG(refProfile_online)
   }
   /**
   private def mergeRefProfile(thisRefProfile: mutable.Map[Int, Int]): Unit = {

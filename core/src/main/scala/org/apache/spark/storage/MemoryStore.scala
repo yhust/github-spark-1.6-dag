@@ -22,6 +22,8 @@ import java.util.LinkedHashMap
 
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, MutableList}
+import scala.collection.immutable.ListMap
+import scala.util.control.Breaks._
 
 import org.apache.spark.TaskContext
 import org.apache.spark.memory.MemoryManager
@@ -292,8 +294,8 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       if (refMap.contains(blockId)){
         logError(s"yyh: the to unrolled block is already in the ref map")
       }
-      else if (blockManager.refProfile.contains(rddId)) {   // appDAG
-        val ref_count = blockManager.refProfile(rddId)
+      else if (blockManager.refProfile_online.contains(rddId)) {   // jobDAG
+        val ref_count = blockManager.refProfile_online(rddId)// jobDAG
         refMap.synchronized { refMap(blockId) = ref_count}
         logInfo(s"yyh: (Unrolling) fetch the ref count of $blockId: $ref_count")
       }
@@ -427,8 +429,8 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
         if (refMap.contains(blockId)){
           logInfo(s"yyh: the to be cache block is already in the ref map")
         }
-        else if (blockManager.refProfile.contains(rddId)) {
-          val ref_count = blockManager.refProfile(rddId)
+        else if (blockManager.refProfile_online.contains(rddId)) {// jobDAG
+          val ref_count = blockManager.refProfile_online(rddId)// jobDAG
           refMap.synchronized { refMap(blockId) = ref_count}
           logInfo(s"yyh: fetch the ref count of $blockId: $ref_count")
         }
@@ -490,27 +492,45 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       var freedMemory = 0L
       val rddToAdd = blockId.flatMap(getRddId)
       val selectedBlocks = new ArrayBuffer[BlockId]
+      logInfo(s"yyh: Try to evict space for $blockId")
       // logInfo(s"yyh: LRU: Free space for block $blockId, current entries $entries")
       // be cautious to print all the entries, for concurrency issues
       // This is synchronized to ensure that the set of entries is not changed
       // (because of getValue or getBytes) while traversing the iterator, as that
       // can lead to exceptions.
-      // var blockToCacheRefCount = Int.MaxValue
+      var blockToCacheRefCount = Int.MaxValue
       // yyh: if this is a broadcast block, cache it anyway
-      // if (blockManager.refProfile.exists(_._1 == rddToAdd.getOrElse(-1))) {
-        // blockToCacheRefCount = blockManager.refProfile(rddToAdd.getOrElse(-1))
-      // }
+      refMap.synchronized {
+        if (blockId.isDefined && blockId.get.isRDD){
+          if (refMap.contains(blockId.get))
+          {
+            blockToCacheRefCount = refMap(blockId.get)
+            logInfo(s"yyh: The ref count of $blockId is $blockToCacheRefCount")
+          }
+          else {
+            blockToCacheRefCount = 1
+            logError(s"yyh: The ref count of $blockId is not in the refMap")
+          }
+        }
+      }
 
-      entries.synchronized {
-        // For LRCs if the ref count is zero, skip the checking
-        val iterator = entries.entrySet().iterator()
-        while (freedMemory < space && iterator.hasNext) {
-          val pair = iterator.next()
-          val blockId = pair.getKey
-          // For fair comparison, only block rdd will be considered for eviction as in LRC policies
-          if (blockId.isRDD) { // rddToAdd.isEmpty || rddToAdd != getRddId(blockId)
-            selectedBlocks += blockId
-            freedMemory += pair.getValue.size
+      // entries.synchronized {
+        // val iterator = entries.entrySet().iterator()
+      currentRefMap.synchronized {
+        // Sort all the blocks in current cache by their ref counts
+        // Only rdd blocks will be put in the currentRefMap
+        val listMap = ListMap(currentRefMap.toSeq.sortBy(_._2): _*)
+        breakable {
+          for ((thisBlockId, thisRefCount) <- listMap){
+            if (thisRefCount < blockToCacheRefCount && freedMemory < space) {
+              selectedBlocks += thisBlockId
+              entries.synchronized {
+                freedMemory += entries.get(thisBlockId).size
+              }
+            }
+            else {
+              break
+            }
           }
         }
       }
@@ -738,7 +758,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     if (blockManager.refProfile_online.contains(rddId)){
       blockManager.refProfile_online(rddId) -= 1
       logInfo(s"yyh: the ref count of $rddId in blockManager's refProfile_online is deducted " +
-        s"to ${blockManager.refProfile(rddId)} due to strict all-or-nothing")
+        s"to ${blockManager.refProfile_online(rddId)} due to strict all-or-nothing")
     }
     refMap.synchronized {
       refMap.foreach{ case (key: BlockId, value: Int) =>
