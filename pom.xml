@@ -26,7 +26,7 @@
   </parent>
   <groupId>org.apache.spark</groupId>
   <artifactId>spark-parent_2.10</artifactId>
-  <version>1.6.4-SNAPSHOT</version>
+  <version>1.6.1</version>
   <packaging>pom</packaging>
   <name>Spark Project Parent POM</name>
   <url>http://spark.apache.org/</url>
@@ -127,7 +127,7 @@
     <mesos.classifier>shaded-protobuf</mesos.classifier>
     <slf4j.version>1.7.10</slf4j.version>
     <log4j.version>1.2.17</log4j.version>
-    <hadoop.version>2.2.0</hadoop.version>
+    <hadoop.version>2.4.0</hadoop.version>
     <protobuf.version>2.5.0</protobuf.version>
     <yarn.version>${hadoop.version}</yarn.version>
     <hbase.version>0.98.7-hadoop2</hbase.version>
@@ -331,6 +331,12 @@
       This is a dummy dependency that is used along with the shading plug-in
       to create effective poms on publishing (see SPARK-3812).
     -->
+
+    <dependency>
+      <groupId>net.smacke</groupId>
+      <artifactId>jaydio</artifactId>
+      <version>0.1</version>
+    </dependency>
     <dependency>
       <groupId>org.spark-project.spark</groupId>
       <artifactId>unused</artifactId>

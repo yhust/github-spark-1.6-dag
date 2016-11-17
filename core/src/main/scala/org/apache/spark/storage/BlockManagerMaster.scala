@@ -20,6 +20,7 @@ package org.apache.spark.storage
 import scala.collection.Iterable
 import scala.collection.generic.CanBuildFrom
 import scala.concurrent.{Await, Future}
+import scala.collection.mutable // yyh
 
 import org.apache.spark.rpc.RpcEndpointRef
 import org.apache.spark.{Logging, SparkConf, SparkException}
@@ -217,6 +218,35 @@ class BlockManagerMaster(
    */
   def hasCachedBlocks(executorId: String): Boolean = {
     driverEndpoint.askWithRetry[Boolean](HasCachedBlocks(executorId))
+  }
+  /**
+    * yyh, report to the driver the hit and miss count on this blockmanager
+    */
+  def reportCacheHit(blockManagerId: BlockManagerId, hitCount: Int, missCount: Int): Boolean = {
+    driverEndpoint.askWithRetry[Boolean](ReportCacheHit(blockManagerId, hitCount, missCount))
+  }
+
+  /**
+    * yyh, get the refProfile from the driver, including appDAG, jobDAGs and peer information
+    */
+  def getRefProfile(blockManagerId: BlockManagerId, slaveEndPoint: RpcEndpointRef):
+  (mutable.Map[Int, Int], mutable.Map[Int, mutable.Map[Int, Int]],
+    mutable.Map[Int, Int]) = {
+    logInfo(s"yyh: $blockManagerId try to get refprofile from the master endpoint")
+    driverEndpoint.askWithRetry[(mutable.Map[Int, Int], mutable.Map[Int, mutable.Map[Int, Int]],
+      mutable.Map[Int, Int])](GetRefProfile(blockManagerId, slaveEndPoint))
+  }
+
+  /**
+    * yyh, for all-or-nothing
+    * If a block with peer is evicted, tell the master
+    */
+  /**
+    * yyh, get the refProfile from the driver, including appDAG, jobDAGs and peer information
+    */
+  def reportBlockEviction(blockId: BlockId): Unit = {
+    logInfo(s"yyh: $blockId is evicted, tell the master as it has a peer")
+    driverEndpoint.askWithRetry[Boolean](BlockWithPeerEvicted(blockId))
   }
 
   /** Stop the driver endpoint, called only on the Spark driver node */

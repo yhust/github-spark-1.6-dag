@@ -73,6 +73,16 @@ class BlockManagerSlaveEndpoint(
 
     case TriggerThreadDump =>
       context.reply(Utils.getThreadDump())
+
+    case BroadcastJobDAG(jobId) => // yyh
+      blockManager.updateRefProfile(jobId, null)// the job DAG is currently not profiled online
+      context.reply(true)
+
+    case CheckPeersConservatively(blockId) => // yyh for all-or-nothing
+      blockManager.memoryStore.checkPeersConservatively(blockId)
+
+    case CheckPeersStrictly(blockId) => // yyh for all-or-nothing
+      blockManager.memoryStore.checkPeersStrictly(blockId)
   }
 
   private def doAsync[T](actionMessage: String, context: RpcCallContext)(body: => T) {
