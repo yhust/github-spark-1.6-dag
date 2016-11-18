@@ -785,7 +785,8 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     */
   private def updateFilter(blockId: BlockId, origin: Int, jobDAG: mutable.Map[Int, Int]) = {
     val rddId = blockId.asRDDId.toString.split("_")(1).toInt
-    origin + jobDAG.getOrElse(rddId, 0)
+    jobDAG.getOrElse(rddId, 0)
+    // For an RDD to be used in the next job, its origin ref count might be 1.
   }
 
 
