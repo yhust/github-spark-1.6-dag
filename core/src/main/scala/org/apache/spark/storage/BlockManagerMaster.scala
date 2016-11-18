@@ -21,6 +21,7 @@ import scala.collection.Iterable
 import scala.collection.generic.CanBuildFrom
 import scala.concurrent.{Await, Future}
 import scala.collection.mutable // yyh
+import scala.collection.immutable.List
 
 import org.apache.spark.rpc.RpcEndpointRef
 import org.apache.spark.{Logging, SparkConf, SparkException}
@@ -222,8 +223,8 @@ class BlockManagerMaster(
   /**
     * yyh, report to the driver the hit and miss count on this blockmanager
     */
-  def reportCacheHit(blockManagerId: BlockManagerId, hitCount: Int, missCount: Int): Boolean = {
-    driverEndpoint.askWithRetry[Boolean](ReportCacheHit(blockManagerId, hitCount, missCount))
+  def reportCacheHit(blockManagerId: BlockManagerId, list: List[Int]): Boolean = {
+    driverEndpoint.askWithRetry[Boolean](ReportCacheHit(blockManagerId, list))
   }
 
   /**
