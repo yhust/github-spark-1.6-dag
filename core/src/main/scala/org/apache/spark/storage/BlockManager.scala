@@ -183,7 +183,8 @@ private[spark] class BlockManager(
   // Be careful that currently we do not consider re-admission of their peers.
   private var hitCount = 0 // hit count of rdd blocks
   private var missCount = 0 // miss count of rdd blocks
-
+  var diskRead = 0 // count of disk read
+  var diskWrite = 0 // count of disk write
   /**
    * Initializes the BlockManager with the given appId. This is not performed in the constructor as
    * the appId may not be known at BlockManager instantiation time (in particular for the driver,
@@ -931,9 +932,9 @@ private[spark] class BlockManager(
               master.driverEndpoint.askWithRetry[Boolean](BlockWithPeerEvicted(blockId))
             }
           }
-          else {
-            logError(s"yyh: storage level of $blockId is neither Memory_only nor Disk_only")
-          }
+          // else {
+            // logError(s"yyh: storage level of $blockId is neither Memory_only nor Disk_only")
+          // }
 
 
 

@@ -229,7 +229,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       }
     }
     if (blockId.isRDD){
-      val ref_count = currentRefMap(blockId)
+      // val ref_count = currentRefMap(blockId)
       currentRefMap.synchronized { currentRefMap.remove(blockId)}
     }
     if (entry != null) {
