@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.mutable.{ArrayBuffer, HashMap}
 import scala.collection.mutable
+import scala.collection.immutable.List
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Random
@@ -185,6 +186,7 @@ private[spark] class BlockManager(
   private var missCount = 0 // miss count of rdd blocks
   var diskRead = 0 // count of disk read
   var diskWrite = 0 // count of disk write
+
   /**
    * Initializes the BlockManager with the given appId. This is not performed in the constructor as
    * the appId may not be known at BlockManager instantiation time (in particular for the driver,
@@ -316,7 +318,7 @@ private[spark] class BlockManager(
   def reportCacheHit(): Unit = {
     logInfo(s"yyh: $blockManagerId reporting Cache hit to the master, " +
       s"hit $hitCount, miss $missCount")
-    if (!master.reportCacheHit(blockManagerId, hitCount, missCount)) {
+    if (!master.reportCacheHit(blockManagerId, List(hitCount, missCount, diskRead, diskWrite))) {
       logError(s"$blockManagerId failed to report Cache hit to master; giving up.")
       return
     }
@@ -932,9 +934,9 @@ private[spark] class BlockManager(
               master.driverEndpoint.askWithRetry[Boolean](BlockWithPeerEvicted(blockId))
             }
           }
-          // else {
-            // logError(s"yyh: storage level of $blockId is neither Memory_only nor Disk_only")
-          // }
+          else {
+            logError(s"yyh: storage level of $blockId is neither Memory_only nor Disk_only")
+          }
 
 
 

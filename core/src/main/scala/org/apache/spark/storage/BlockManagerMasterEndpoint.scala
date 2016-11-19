@@ -22,6 +22,7 @@ import java.nio.file.{Paths, Files}
 import java.util.{HashMap => JHashMap}
 
 import scala.collection.mutable
+import scala.collection.immutable.List
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 import org.apache.spark.rpc.{RpcCallContext, RpcEndpointRef, RpcEnv, ThreadSafeRpcEndpoint}
@@ -60,6 +61,8 @@ class BlockManagerMasterEndpoint(
   logInfo(s"yyh: Log start time: $startTime")
   var RDDHit = 0
   var RDDMiss = 0
+  var diskRead = 0
+  var diskWrite = 0
   private val refProfile = mutable.Map[Int, Int]() // yyh
   private val refProfile_By_Job = mutable.Map[Int, mutable.Map[Int, Int]]()
   private val appName = conf.getAppName.filter(!" ".contains(_))
@@ -186,9 +189,8 @@ class BlockManagerMasterEndpoint(
     case StartBroadcastJobId(jobId) =>
       broadcastJobDAG(jobId) // , refProfile_By_Job(jobId))
       context.reply(true)
-
-    case ReportCacheHit(blockManagerId, hitCount, missCount) => // yyh
-      updateCacheHit(blockManagerId, hitCount, missCount)
+    case ReportCacheHit(blockManagerId, list) => // yyh
+      updateCacheHit(blockManagerId, list)
       context.reply(true)
 
     case GetRefProfile(blockManagerId, slaveEndPoint) => // yyh
@@ -478,14 +480,19 @@ class BlockManagerMasterEndpoint(
     }
   }
 
-  private def updateCacheHit(blockManagerId: BlockManagerId, hitCount: Int, missCount: Int):
+  private def updateCacheHit(blockManagerId: BlockManagerId, list: List[Int]):
   Boolean = {
-
-    RDDHit += hitCount
-    RDDMiss += missCount
+    // list (hitCount, missCount, diskRead, diskWrite)
+    RDDHit += list(0)
+    RDDMiss += list(1)
+    diskRead += list(2)
+    diskWrite += list(3)
     logDebug(s"yyh: Received Report from $blockManagerId: " +
-      s"RDD Hit count increased by $hitCount. now $RDDHit" +
-      s"RDD Miss count increased by $missCount. now $RDDMiss")
+      s"RDD Hit count increased by ${list(0)}. now $RDDHit" +
+      s"RDD Miss count increased by ${list(1)}. now $RDDMiss" +
+      s"Disk Read count increased by ${list(2)}. now $diskRead" +
+      s"Disk Write count increased by ${list(3)}. now $diskWrite"
+    )
     true
   }
 
@@ -561,6 +568,7 @@ class BlockManagerMasterEndpoint(
     val duration = stopTime - startTime
     logInfo(s"yyh: log stoptime: $stopTime, duration: $duration ms")
     logInfo(s"yyh: Closing blockMangerMasterEndPoint, RDD hit $RDDHit, RDD miss $RDDMiss")
+    logInfo(s" Disk read count: $diskRead, disk write count: $diskWrite")
     // val path = System.getProperty("user.dir")
     val appName = conf.getAppName
     val fw = new FileWriter("result.txt", true) // true means append mode
