@@ -140,6 +140,8 @@ class BlockManagerMaster(
 
   /** Remove all blocks belonging to the given broadcast. */
   def removeBroadcast(broadcastId: Long, removeFromMaster: Boolean, blocking: Boolean) {
+    return
+    /**
     val future = driverEndpoint.askWithRetry[Future[Seq[Int]]](
       RemoveBroadcast(broadcastId, removeFromMaster))
     future.onFailure {
@@ -150,6 +152,7 @@ class BlockManagerMaster(
     if (blocking) {
       timeout.awaitResult(future)
     }
+    */
   }
 
   /**

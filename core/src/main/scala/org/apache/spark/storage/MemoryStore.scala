@@ -490,7 +490,9 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       var freedMemory = 0L
       val rddToAdd = blockId.flatMap(getRddId)
       val selectedBlocks = new ArrayBuffer[BlockId]
-      // logInfo(s"yyh: LRU: Free space for block $blockId, current entries $entries")
+      entries.synchronized{
+        logInfo(s"yyh: LRU: Free space for block $blockId, current entries $entries")
+      }
       // be cautious to print all the entries, for concurrency issues
       // This is synchronized to ensure that the set of entries is not changed
       // (because of getValue or getBytes) while traversing the iterator, as that
