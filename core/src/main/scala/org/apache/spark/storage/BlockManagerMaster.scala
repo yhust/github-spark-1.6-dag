@@ -106,9 +106,9 @@ class BlockManagerMaster(
    * blocks that the driver knows about.
    */
   def removeBlock(blockId: BlockId) {
-    //if (!blockId.isRDD) {  // yyh: the rdd blocks can only be removed by memory store itself
+    // if (!blockId.isRDD) {  // yyh: the rdd blocks can only be removed by memory store itself
     driverEndpoint.askWithRetry[Boolean](RemoveBlock(blockId))
-    //}
+    // }
   }
 
   /** Remove all blocks belonging to the given RDD. */
