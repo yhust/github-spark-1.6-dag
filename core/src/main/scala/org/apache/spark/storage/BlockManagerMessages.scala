@@ -18,7 +18,7 @@
 package org.apache.spark.storage
 
 import java.io.{Externalizable, ObjectInput, ObjectOutput}
-import scala.collection.mutable
+import scala.collection.immutable.List
 import org.apache.spark.rpc.RpcEndpointRef
 import org.apache.spark.util.Utils
 
@@ -127,7 +127,7 @@ private[spark] object BlockManagerMessages {
   case class StartBroadcastJobId(jobId: Int) extends ToBlockManagerMaster
 
   // yyh: report the cache hit and miss to the master on stop of the block manager on slaves
-  case class ReportCacheHit(blockManagerId: BlockManagerId, hitCount: Int, missCount: Int)
+  case class ReportCacheHit(blockManagerId: BlockManagerId, list: List[Int])
     extends ToBlockManagerMaster
 
   // yyh: ask for app-DAG, job-DAG, and peers information from the master

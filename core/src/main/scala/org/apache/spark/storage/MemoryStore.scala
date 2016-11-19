@@ -508,7 +508,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
           val pair = iterator.next()
           val blockId = pair.getKey
           // For fair comparison, only block rdd will be considered for eviction as in LRC policies
-          if (blockId.isRDD) { // rddToAdd.isEmpty || rddToAdd != getRddId(blockId)
+          if (blockId.isRDD ) { // && rddToAdd != getRddId(blockId) // rddToAdd.isEmpty ||
             selectedBlocks += blockId
             freedMemory += pair.getValue.size
           }

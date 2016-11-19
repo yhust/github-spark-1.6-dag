@@ -21,6 +21,7 @@ import scala.collection.Iterable
 import scala.collection.generic.CanBuildFrom
 import scala.concurrent.{Await, Future}
 import scala.collection.mutable // yyh
+import scala.collection.immutable.List
 
 import org.apache.spark.rpc.RpcEndpointRef
 import org.apache.spark.{Logging, SparkConf, SparkException}
@@ -105,11 +106,15 @@ class BlockManagerMaster(
    * blocks that the driver knows about.
    */
   def removeBlock(blockId: BlockId) {
-    driverEndpoint.askWithRetry[Boolean](RemoveBlock(blockId))
+    if (!blockId.isRDD) {  // yyh: the rdd blocks can only be removed by memory store itself
+      driverEndpoint.askWithRetry[Boolean](RemoveBlock(blockId))
+    }
   }
 
   /** Remove all blocks belonging to the given RDD. */
   def removeRdd(rddId: Int, blocking: Boolean) {
+    return // yyh: disable the driver to remove rdds
+    /**
     val future = driverEndpoint.askWithRetry[Future[Seq[Int]]](RemoveRdd(rddId))
     future.onFailure {
       case e: Exception =>
@@ -118,6 +123,7 @@ class BlockManagerMaster(
     if (blocking) {
       timeout.awaitResult(future)
     }
+      */
   }
 
   /** Remove all blocks belonging to the given shuffle. */
@@ -222,8 +228,8 @@ class BlockManagerMaster(
   /**
     * yyh, report to the driver the hit and miss count on this blockmanager
     */
-  def reportCacheHit(blockManagerId: BlockManagerId, hitCount: Int, missCount: Int): Boolean = {
-    driverEndpoint.askWithRetry[Boolean](ReportCacheHit(blockManagerId, hitCount, missCount))
+  def reportCacheHit(blockManagerId: BlockManagerId, list: List[Int]): Boolean = {
+    driverEndpoint.askWithRetry[Boolean](ReportCacheHit(blockManagerId, list))
   }
 
   /**

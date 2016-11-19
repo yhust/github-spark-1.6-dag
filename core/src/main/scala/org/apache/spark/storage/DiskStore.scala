@@ -44,6 +44,7 @@ private[spark] class DiskStore(blockManager: BlockManager, diskManager: DiskBloc
     logDebug(s"Attempting to put block $blockId")
     if(blockId.isRDD) {
       logInfo(s"yyh-DiskStore: putting Bytes of $blockId directly to the disk")
+      blockManager.diskWrite += 1
       bytes.rewind()
       val read_size = 1 << 23 // 8 MiB each time at most
       val file = diskManager.getFile(blockId)
@@ -134,6 +135,7 @@ private[spark] class DiskStore(blockManager: BlockManager, diskManager: DiskBloc
                                                 Option[ByteBuffer] = {
     if (blockId.isRDD) {
       logInfo(s"yyh-DiskStore: Getting Bytes of $blockId directly from disk")
+      blockManager.diskRead += 1
       val byte_buffer = ByteBuffer.allocate(length.toInt)
       val read_size = 1 << 23 // read 8 MiB a time (at most)
       val direct_read = new DirectRandomAccessFile(file, "r") // , read_size)
