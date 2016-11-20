@@ -230,7 +230,11 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     }
     if (blockId.isRDD){
       // val ref_count = currentRefMap(blockId)
-      currentRefMap.synchronized { currentRefMap.remove(blockId)}
+      currentRefMap.synchronized {
+        if (currentRefMap.contains(blockId)){
+          currentRefMap.remove(blockId)
+        }
+      }
     }
     if (entry != null) {
       memoryManager.releaseStorageMemory(entry.size)
