@@ -42,7 +42,7 @@ import org.apache.spark.network.shuffle.protocol.ExecutorShuffleInfo
 import org.apache.spark.rpc.RpcEnv
 import org.apache.spark.serializer.{Serializer, SerializerInstance}
 import org.apache.spark.shuffle.ShuffleManager
-import org.apache.spark.storage.BlockManagerMessages.BlockWithPeerEvicted
+import org.apache.spark.storage.BlockManagerMessages.{BlockWithPeerEvicted, ReportRefMap}
 import org.apache.spark.util._
 
 import scala.io.Source // yyh
@@ -261,6 +261,8 @@ private[spark] class BlockManager(
   ////  handles more than two RDDs at the same time
     */
   def updateRefProfile(jobId: Int, thisRefProfile: Option[mutable.Map[Int, Int]]): Unit = {
+    // tell the driver the current ref map: for debug
+    master.reportRefMap(blockManagerId, memoryStore.currentRefMap)
     if (thisRefProfile.isEmpty) {
       // read job dag from profie
       val jobProfile = refProfile_by_Job.get(jobId)

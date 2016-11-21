@@ -244,6 +244,13 @@ class BlockManagerMaster(
   }
 
   /**
+    * yyh report the current ref map to the driver. For debug
+     */
+  def reportRefMap(blockManagerId: BlockManagerId, refMap: mutable.Map[BlockId, Int]): Unit = {
+    driverEndpoint.askWithRetry[Boolean](ReportRefMap(blockManagerId, refMap))
+  }
+
+  /**
     * yyh, for all-or-nothing
     * If a block with peer is evicted, tell the master
     */
