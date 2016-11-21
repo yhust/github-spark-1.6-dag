@@ -200,6 +200,10 @@ class BlockManagerMasterEndpoint(
       onPeerEvicted(blockId)
       context.reply(true)
 
+    case ReportRefMap(blockManagerId, currentRefMap) =>
+       logInfo(s"yyh: received from $blockManagerId, $currentRefMap")
+       context.reply(true)
+
   }
 
   private def removeRdd(rddId: Int): Future[Seq[Int]] = {
