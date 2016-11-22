@@ -75,8 +75,10 @@ class BlockManagerSlaveEndpoint(
       context.reply(Utils.getThreadDump())
 
     case BroadcastJobDAG(jobId) => // yyh
-      blockManager.updateRefProfile(jobId, None)// the job DAG is currently not profiled online
-      context.reply(true)
+      // In the future, profile the JobDAG
+      val (currentRefMap, refMap) = blockManager.updateRefProfile(jobId, None)
+      // return the updated ref map
+      context.reply((currentRefMap, refMap))
 
     case CheckPeersConservatively(blockId) => // yyh for all-or-nothing
       blockManager.memoryStore.checkPeersConservatively(blockId)
