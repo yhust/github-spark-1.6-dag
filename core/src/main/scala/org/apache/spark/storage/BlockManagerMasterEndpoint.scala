@@ -102,7 +102,7 @@ class BlockManagerMasterEndpoint(
   // Be careful, here we only assume that all the peers are only required once.
   // That means once either of the peer got evicted, it is safe to clear the ref count of the other
   // for all-or-nothing considerations.
-  // It's the BlockManager on slaves who decide to report an eviction of a block with a peer or not.
+  // It's the BlockManager on slave who decides to report an eviction of a block with a peer or not.
   // In the case where a block whose peer is already evicted, the BlockManger should not report.
 
   val peers = path + "/" + appName + "-Peers.txt"
