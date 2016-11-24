@@ -183,6 +183,7 @@ private[spark] class BlockManager(
   var peerLostBlocks = new mutable.MutableList[BlockId] // yyh for all-or-nothing property
   // for those blocks that have lost their peers
   // Be careful that currently we do not consider re-admission of their peers.
+  var decreaseRDDList = new mutable.MutableList[Int] // yyh for strict all-or-nothing
   private var hitCount = 0 // hit count of rdd blocks
   private var missCount = 0 // miss count of rdd blocks
   var diskRead = 0 // count of disk read

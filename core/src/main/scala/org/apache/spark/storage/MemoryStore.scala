@@ -48,7 +48,6 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
   // all blocks in cache and disk
   var currentRefMap = mutable.Map[BlockId, Int]() // remaining refCount of blocks in cache
 
-
   // A mapping from taskAttemptId to amount of memory used for unrolling a block (in bytes)
   // All accesses of this map are assumed to have manually synchronized on `memoryManager`
   private val unrollMemoryMap = mutable.HashMap[Long, Long]()
@@ -695,6 +694,8 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     * What if the particular block has not been generated: keep a record in the peerLostBlocks
     */
   def checkPeersConservatively(blockId: BlockId): Unit = refMap.synchronized {
+    // decrease the refcount of this block itself
+    logInfo(s"yyh: Conservative sticky: try to decrease the refcount of $blockId")
     refMap.synchronized {
       if (refMap.contains(blockId)) {
         refMap(blockId) -= 1
@@ -710,8 +711,11 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       }
     }
 
+    // decrease the refcount of its peer
+
     val rddId = blockId.asRDDId.toString.split("_")(1).toInt // rdd_1_1
-    val index = blockId.asRDDId.toString.split("_")(2).toInt
+    val index = blockId.asRDDId.toString.split("_")(2).stripSuffix(")").toInt
+    logInfo(s"yyh: Conservative sticky: try to decrease the refcount of rdd_$rddId _$index")
     if (blockManager.peers.contains(rddId))
     {
       val peerRDDId = blockManager.peers.get(rddId).get
@@ -746,17 +750,21 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     */
   def checkPeersStrictly(blockId: BlockId): Unit = refMap.synchronized {
     val rddId = blockId.asRDDId.toString.split("_")(1).toInt
-    decreaseRDDRefCount(rddId)
+    if (!blockManager.decreaseRDDList.contains(rddId)) {
+      decreaseRDDRefCount(rddId)
+      blockManager.decreaseRDDList += rddId
+    }
     val peerRDDId = blockManager.peers.get(rddId)
-    if (peerRDDId.isDefined) {
+    if (peerRDDId.isDefined && (!blockManager.decreaseRDDList.contains(peerRDDId.get))) {
       decreaseRDDRefCount(peerRDDId.get)
+      blockManager.decreaseRDDList += rddId
     }
   }
 
   def decreaseRDDRefCount(rddId: Int): Unit = {
     if (blockManager.refProfile.contains(rddId)){
       blockManager.refProfile(rddId) -= 1
-      logInfo(s"yyh: the ref count of $rddId in blockManager's refProfile is deducted " +
+      logInfo(s"yyh: the ref count of RDD $rddId in blockManager's refProfile is deducted " +
         s"to ${blockManager.refProfile(rddId)} due to strict all-or-nothing")
     }
     if (blockManager.refProfile_online.contains(rddId)){
