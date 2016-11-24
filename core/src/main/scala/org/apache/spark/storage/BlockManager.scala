@@ -43,7 +43,6 @@ import org.apache.spark.network.shuffle.protocol.ExecutorShuffleInfo
 import org.apache.spark.rpc.RpcEnv
 import org.apache.spark.serializer.{Serializer, SerializerInstance}
 import org.apache.spark.shuffle.ShuffleManager
-import org.apache.spark.storage.BlockManagerMessages.{BlockWithPeerEvicted}
 import org.apache.spark.util._
 
 import scala.io.Source // yyh
@@ -960,7 +959,7 @@ private[spark] class BlockManager(
               // if this block still has remaining ref count, it means its peer has not been evicted
               logInfo(s"yyh: $blockId is either rejected or evicted from cache" +
                 s" with nonzero ref count, notify the master of its loss")
-              master.driverEndpoint.askWithRetry[Boolean](BlockWithPeerEvicted(blockId))
+              master.reportBlockEviction(blockId)
             }
           }
           else {

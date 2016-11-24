@@ -248,7 +248,7 @@ class BlockManagerMaster(
      */
   // def reportRefMap(blockManagerId: BlockManagerId, refMap: mutable.Map[BlockId, Int]): Unit = {
   //  driverEndpoint.askWithRetry[Boolean](ReportRefMap(blockManagerId, refMap))
-  //}
+  // }
 
   /**
     * yyh, for all-or-nothing
