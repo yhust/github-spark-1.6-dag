@@ -89,7 +89,6 @@ private[spark] class ZippedPartitionsRDD2[A: ClassTag, B: ClassTag, V: ClassTag]
 
   override def compute(s: Partition, context: TaskContext): Iterator[V] = {
     val partitions = s.asInstanceOf[ZippedPartitionsPartition].partitions
-    /**
     val iter1 = Future {rdd1.iterator(partitions(0), context)} // yyh read partitions concurrently
     val iter2 = Future {rdd2.iterator(partitions(1), context)}
     val result = for {
@@ -98,8 +97,8 @@ private[spark] class ZippedPartitionsRDD2[A: ClassTag, B: ClassTag, V: ClassTag]
     } yield (f(r1, r2))
     logInfo(s"yyh: Wait for zip read")
     Await.result(result, Duration.Inf)
-    */
-    f(rdd1.iterator(partitions(0), context), rdd2.iterator(partitions(1), context))
+
+    // f(rdd1.iterator(partitions(0), context), rdd2.iterator(partitions(1), context))
   }
 
   override def clearDependencies() {
