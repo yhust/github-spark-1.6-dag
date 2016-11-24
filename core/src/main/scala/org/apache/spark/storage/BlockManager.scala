@@ -26,6 +26,7 @@ import scala.collection.mutable
 import scala.collection.immutable.List
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Random
 import scala.util.control.NonFatal
 import scala.collection.JavaConverters._
@@ -737,6 +738,30 @@ private[spark] class BlockManager(
       return remote
     }
     None
+  }
+
+  /**
+    * yyh get block in a non-blocking way.
+    * Get a block from the block manager (either local or remote).
+    *
+    */
+  def get_future(blockId: BlockId): Future[Option[BlockResult]] = {
+      val local = Future { getLocal(blockId)}
+      val blockData = for ( localData <- local) yield {
+        if (localData.isDefined) {
+          logInfo(s"Found block $blockId locally")
+          localData
+        }
+        else {
+          val remote = getRemote(blockId)
+          if (remote.isDefined) {
+            logInfo(s"Found block $blockId remotely")
+            remote
+          }
+          else None
+      }
+    }
+    blockData
   }
 
   def putIterator(
