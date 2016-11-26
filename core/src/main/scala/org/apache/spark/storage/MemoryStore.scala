@@ -715,11 +715,12 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
 
     val rddId = blockId.asRDDId.toString.split("_")(1).toInt // rdd_1_1
     val index = blockId.asRDDId.toString.split("_")(2).stripSuffix(")").toInt
-    logInfo(s"yyh: Conservative sticky: try to decrease the refcount of rdd_$rddId _$index")
+
     if (blockManager.peers.contains(rddId))
     {
       val peerRDDId = blockManager.peers.get(rddId).get
       val peerBlockId = new RDDBlockId(peerRDDId, index)
+      logInfo(s"yyh: Conservative sticky: try to decrease the refcount of $peerBlockId")
       refMap.synchronized {
         if (refMap.contains(peerBlockId)) {
           refMap(peerBlockId) -= 1
