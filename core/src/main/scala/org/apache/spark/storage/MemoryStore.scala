@@ -504,6 +504,8 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       // can lead to exceptions.
       var blockToCacheRefCount = Int.MaxValue
       // yyh: if this is a broadcast block, cache it anyway
+      // be careful of the broadcast blocks
+
       refMap.synchronized {
         if (blockId.isDefined && blockId.get.isRDD){
           if (refMap.contains(blockId.get))
@@ -517,31 +519,56 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
           }
         }
       }
-      val peerRDDId = blockManager.peers.getOrElse(rddToAdd.get, 0)
-      val index = blockId.get.asRDDId.toString.split("_")(2).stripSuffix(")").toInt
-      val peerBlockId = new RDDBlockId(peerRDDId, index)
-      // entries.synchronized {
-        // val iterator = entries.entrySet().iterator()
-      currentRefMap.synchronized {
-        // Sort all the blocks in current cache by their ref counts
-        // Only rdd blocks will be put in the currentRefMap
-        val listMap = ListMap(currentRefMap.toSeq.sortBy(_._2): _*)
-        breakable {
-          for ((thisBlockId, thisRefCount) <- listMap){
-            // conservative all-or-nothing: do not evict its peer
-            if (thisBlockId != peerBlockId && thisRefCount <= blockToCacheRefCount
-              && freedMemory < space) {
-              selectedBlocks += thisBlockId
-              entries.synchronized {
-                freedMemory += entries.get(thisBlockId).size
+
+      // If the to-be-cached block is from a block RDD
+      if (blockId.isDefined && blockId.get.isRDD) {
+        val peerRDDId = blockManager.peers.getOrElse(rddToAdd.get, 0)
+        // val index = blockId.get.asRDDId.toString.split("_")(2).stripSuffix(")").toInt
+        val index = blockId.get.asRDDId.map(_.splitIndex).get
+        val peerBlockId = new RDDBlockId(peerRDDId, index)
+        currentRefMap.synchronized {
+          // Sort all the blocks in current cache by their ref counts
+          // Only rdd blocks will be put in the currentRefMap
+          val listMap = ListMap(currentRefMap.toSeq.sortBy(_._2): _*)
+          breakable {
+            for ((thisBlockId, thisRefCount) <- listMap){
+              val thisRDDId = getRddId(thisBlockId).get
+              // strict all-or-nothing: do not evict its peers
+              if (thisRDDId != rddToAdd.get && thisRDDId != peerRDDId
+                && thisRefCount <= blockToCacheRefCount && freedMemory < space) {
+                selectedBlocks += thisBlockId
+                entries.synchronized {
+                  freedMemory += entries.get(thisBlockId).size
+                }
               }
-            }
-            else {
-              break
+              else {
+                break
+              }
             }
           }
         }
       }
+      else { // the to-be-cached block is not from a block RDD, cache it anyway
+        currentRefMap.synchronized {
+          // Sort all the blocks in current cache by their ref counts
+          // Only rdd blocks will be put in the currentRefMap
+          val listMap = ListMap(currentRefMap.toSeq.sortBy(_._2): _*)
+          breakable {
+            for ((thisBlockId, thisRefCount) <- listMap){
+              if (freedMemory < space) {
+                selectedBlocks += thisBlockId
+                entries.synchronized {
+                  freedMemory += entries.get(thisBlockId).size
+                }
+              }
+              else {
+                break
+              }
+            }
+          }
+        }
+      }
+
       logInfo(s"yyh: To evict blocks $selectedBlocks")
       if (freedMemory >= space) {
         logInfo(s"${selectedBlocks.size} blocks selected for dropping")
