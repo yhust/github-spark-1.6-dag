@@ -47,7 +47,6 @@ class BlockRDD[T: ClassTag](sc: SparkContext, @transient val blockIds: Array[Blo
     assertValid()
     val blockManager = SparkEnv.get.blockManager
     val blockId = split.asInstanceOf[BlockRDDPartition].blockId
-    /**
     val data = blockManager.get_future(blockId) // yyh get block rdd, do not block the sender
     val data1 = Await.result(data, Duration.Inf)
     data1 match {
@@ -55,12 +54,13 @@ class BlockRDD[T: ClassTag](sc: SparkContext, @transient val blockIds: Array[Blo
       case None =>
         throw new Exception("Could not compute split, block " + blockId + " not found")
     }
-    */
+    /**
     blockManager.get(blockId) match {
       case Some(block) => block.data.asInstanceOf[Iterator[T]]
       case None =>
         throw new Exception("Could not compute split, block " + blockId + " not found")
     }
+      */
   }
 
   override def getPreferredLocations(split: Partition): Seq[String] = {
