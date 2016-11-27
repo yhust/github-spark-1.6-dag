@@ -504,44 +504,65 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       // can lead to exceptions.
       var blockToCacheRefCount = Int.MaxValue
       // yyh: if this is a broadcast block, cache it anyway
-      refMap.synchronized {
-        if (blockId.isDefined && blockId.get.isRDD){
-          if (refMap.contains(blockId.get))
-          {
-            blockToCacheRefCount = refMap(blockId.get)
-            logInfo(s"yyh: The ref count of $blockId is $blockToCacheRefCount")
-          }
-          else {
-            blockToCacheRefCount = 1
-            logError(s"yyh: The ref count of $blockId is not in the refMap")
-          }
-        }
-      }
-      val peerRDDId = blockManager.peers.getOrElse(rddToAdd.get, 0)
-      val index = blockId.get.asRDDId.toString.split("_")(2).stripSuffix(")").toInt
-      val peerBlockId = new RDDBlockId(peerRDDId, index)
-      // entries.synchronized {
+
+      // If the to-be-cached block is from a block RDD
+      if (blockId.isDefined && blockId.get.isRDD) {
+        val peerRDDId = blockManager.peers.getOrElse(rddToAdd.get, 0)
+        val index = blockId.get.asRDDId.toString.split("_")(2).stripSuffix(")").toInt
+        val peerBlockId = new RDDBlockId(peerRDDId, index)
+        // entries.synchronized {
         // val iterator = entries.entrySet().iterator()
-      currentRefMap.synchronized {
-        // Sort all the blocks in current cache by their ref counts
-        // Only rdd blocks will be put in the currentRefMap
-        val listMap = ListMap(currentRefMap.toSeq.sortBy(_._2): _*)
-        breakable {
-          for ((thisBlockId, thisRefCount) <- listMap){
-            // conservative all-or-nothing: do not evict its peer
-            if (thisBlockId != peerBlockId && thisRefCount <= blockToCacheRefCount
-              && freedMemory < space) {
-              selectedBlocks += thisBlockId
-              entries.synchronized {
-                freedMemory += entries.get(thisBlockId).size
+        if (refMap.contains(blockId.get))
+        {
+          blockToCacheRefCount = refMap(blockId.get)
+          logInfo(s"yyh: The ref count of $blockId is $blockToCacheRefCount")
+        }
+        else {
+          blockToCacheRefCount = 1
+          logError(s"yyh: The ref count of $blockId is not in the refMap")
+        }
+        currentRefMap.synchronized {
+          // Sort all the blocks in current cache by their ref counts
+          // Only rdd blocks will be put in the currentRefMap
+          val listMap = ListMap(currentRefMap.toSeq.sortBy(_._2): _*)
+          breakable {
+            for ((thisBlockId, thisRefCount) <- listMap){
+              // conservative all-or-nothing: do not evict its peer
+              if (thisBlockId != peerBlockId && thisRefCount <= blockToCacheRefCount
+                && freedMemory < space) {
+                selectedBlocks += thisBlockId
+                entries.synchronized {
+                  freedMemory += entries.get(thisBlockId).size
+                }
+              }
+              else {
+                break
               }
             }
-            else {
-              break
+          }
+        }
+      }
+      else {// If the to-be-cached block is not from a block RDD cache is anyway
+        currentRefMap.synchronized {
+          // Sort all the blocks in current cache by their ref counts
+          // Only rdd blocks will be put in the currentRefMap
+          val listMap = ListMap(currentRefMap.toSeq.sortBy(_._2): _*)
+          breakable {
+            for ((thisBlockId, thisRefCount) <- listMap){
+              if (freedMemory < space) {
+                selectedBlocks += thisBlockId
+                entries.synchronized {
+                  freedMemory += entries.get(thisBlockId).size
+                }
+              }
+              else {
+                break
+              }
             }
           }
         }
       }
+
       logInfo(s"yyh: To evict blocks $selectedBlocks")
       if (freedMemory >= space) {
         logInfo(s"${selectedBlocks.size} blocks selected for dropping")
