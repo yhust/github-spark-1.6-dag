@@ -525,7 +525,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
         val listMap = ListMap(currentRefMap.toSeq.sortBy(_._2): _*)
         breakable {
           for ((thisBlockId, thisRefCount) <- listMap){
-            if (thisRefCount < blockToCacheRefCount && freedMemory < space) {
+            if (thisRefCount <= blockToCacheRefCount && freedMemory < space) {
               selectedBlocks += thisBlockId
               entries.synchronized {
                 freedMemory += entries.get(thisBlockId).size
