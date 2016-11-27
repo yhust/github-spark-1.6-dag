@@ -44,6 +44,7 @@ private[spark] class DiskStore(blockManager: BlockManager, diskManager: DiskBloc
     logDebug(s"Attempting to put block $blockId")
     if(blockId.isRDD) {
       logInfo(s"yyh-DiskStore: putting Bytes of $blockId directly to the disk")
+      blockManager.checkPeerLoss(blockId) // yyh: check whether to tell the driverEndPoint
       blockManager.diskWrite += 1
       bytes.rewind()
       val read_size = 1 << 23 // 8 MiB each time at most
@@ -96,6 +97,7 @@ private[spark] class DiskStore(blockManager: BlockManager, diskManager: DiskBloc
 
     logDebug(s"Attempting to write values for block $blockId")
     logInfo(s"yyh: Writing $blockId as iterator to disk")
+    blockManager.checkPeerLoss(blockId) // yyh: check whether to tell the driverEndPoint
     val startTime = System.currentTimeMillis
     val file = diskManager.getFile(blockId)
     val outputStream = new FileOutputStream(file)
@@ -145,7 +147,7 @@ private[spark] class DiskStore(blockManager: BlockManager, diskManager: DiskBloc
         val this_read_buf = new Array[Byte](remaining.toInt)
         direct_read.read(this_read_buf, 0, remaining.toInt)
         byte_buffer.put(this_read_buf, 0, this_read_buf.length)
-        Thread.sleep(1000) // wait for the read to complete
+        Thread.sleep(100) // wait for the read to complete
       }
       byte_buffer.rewind()
       direct_read.close()

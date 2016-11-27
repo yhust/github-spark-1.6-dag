@@ -517,7 +517,9 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
           }
         }
       }
-
+      val peerRDDId = blockManager.peers.getOrElse(rddToAdd.get, 0)
+      val index = blockId.get.asRDDId.toString.split("_")(2).stripSuffix(")").toInt
+      val peerBlockId = new RDDBlockId(peerRDDId, index)
       // entries.synchronized {
         // val iterator = entries.entrySet().iterator()
       currentRefMap.synchronized {
@@ -526,7 +528,9 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
         val listMap = ListMap(currentRefMap.toSeq.sortBy(_._2): _*)
         breakable {
           for ((thisBlockId, thisRefCount) <- listMap){
-            if (thisRefCount <= blockToCacheRefCount && freedMemory < space) { // <=
+            // conservative all-or-nothing: do not evict its peer
+            if (thisBlockId != peerBlockId && thisRefCount <= blockToCacheRefCount
+              && freedMemory < space) {
               selectedBlocks += thisBlockId
               entries.synchronized {
                 freedMemory += entries.get(thisBlockId).size
@@ -711,7 +715,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     }
 
     val rddId = blockId.asRDDId.toString.split("_")(1).toInt // rdd_1_1
-    val index = blockId.asRDDId.toString.split("_")(2).toInt
+    val index = blockId.asRDDId.toString.split("_")(2).stripSuffix(")").toInt
     if (blockManager.peers.contains(rddId))
     {
       val peerRDDId = blockManager.peers.get(rddId).get

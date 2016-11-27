@@ -515,17 +515,18 @@ class BlockManagerMasterEndpoint(
     val rddId = blockId.asRDDId.toString.split("_")(1).toInt
     // val index = blockId.asRDDId.toString.split("_")(2).toInt
     val peerRDDId = peerProfile.get(rddId)
-    logInfo(s"yyh: Report of block eviction: $blockId")
+
     if (peerRDDId.isEmpty) {
       logError(s"yyh: The reported block $blockId has no peer!")
     }
     else {
+      logInfo(s"yyh: Try to notify slaves of the loss of $blockId")
       // For conservative all-or-nothing, decrease the ref count of the corresponding block
+      // val peerBlockId = new RDDBlockId(peerRDDId.get, index)
       notifyPeersConservatively(blockId)
 
       // For strict all-or-nothing, decrease the ref count of all the blocks of both rdds
       // notifyPeersStrictly(blockId)
-
 
     }
   }

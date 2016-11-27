@@ -43,6 +43,7 @@ import org.apache.spark.network.shuffle.protocol.ExecutorShuffleInfo
 import org.apache.spark.rpc.RpcEnv
 import org.apache.spark.serializer.{Serializer, SerializerInstance}
 import org.apache.spark.shuffle.ShuffleManager
+import org.apache.spark.storage.BlockManagerMessages.{BlockWithPeerEvicted}
 import org.apache.spark.util._
 
 import scala.io.Source // yyh
@@ -182,6 +183,7 @@ private[spark] class BlockManager(
   var peerLostBlocks = new mutable.MutableList[BlockId] // yyh for all-or-nothing property
   // for those blocks that have lost their peers
   // Be careful that currently we do not consider re-admission of their peers.
+  var decreaseRDDList = new mutable.MutableList[Int] // yyh for strict all-or-nothing
   private var hitCount = 0 // hit count of rdd blocks
   private var missCount = 0 // miss count of rdd blocks
   var diskRead = 0 // count of disk read
@@ -251,6 +253,23 @@ private[spark] class BlockManager(
       }
     }
   }
+
+  /**
+    * yyh On putting rdd blocks in the disk, check whether this block has peers
+    * If yes, tell the driverEndPoint
+    */
+
+  def checkPeerLoss(blockId: BlockId): Unit = {
+    if (memoryStore.refMap.getOrElse(blockId, 0) > 0 // this block has remaining ref count
+      && peers.contains(blockId.asRDDId.toString.split("_")(1).toInt)) {
+      // if this block still has remaining ref count, it means its peer has not been evicted
+      logInfo(s"yyh: $blockId is either rejected or evicted from cache" +
+        s" with nonzero ref count, notify the master of its loss")
+      master.driverEndpoint.askWithRetry[Boolean](BlockWithPeerEvicted(blockId))
+    }
+
+  }
+
 
   /** yyh
   // Update the refProfile_online upon job submission
@@ -947,8 +966,11 @@ private[spark] class BlockManager(
           // Now that the block is in either the memory, externalBlockStore, or disk store,
           // let other threads read it, and tell the master about it.
           marked = true
+
+          /**
           // yyh for all-or-nothing: now we check where the block is cached.
           // If in the disk, check whether to notify the master about it.
+            //  => removed this check to diskStore
           if (putBlockStatus.storageLevel == StorageLevel.MEMORY_ONLY){
             logInfo(s"yyh: $blockId is put in memory")
           }
@@ -959,15 +981,13 @@ private[spark] class BlockManager(
               // if this block still has remaining ref count, it means its peer has not been evicted
               logInfo(s"yyh: $blockId is either rejected or evicted from cache" +
                 s" with nonzero ref count, notify the master of its loss")
-              master.reportBlockEviction(blockId)
+              master.driverEndpoint.askWithRetry[Boolean](BlockWithPeerEvicted(blockId))
             }
           }
           else {
             logError(s"yyh: storage level of $blockId is neither Memory_only nor Disk_only")
           }
-
-
-
+          */
 
           putBlockInfo.markReady(size)
           if (tellMaster) {
