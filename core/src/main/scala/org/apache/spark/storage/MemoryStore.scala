@@ -771,9 +771,13 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     */
   def checkPeersStrictly(blockId: BlockId): Unit = refMap.synchronized {
     val rddId = blockId.asRDDId.toString.split("_")(1).toInt
-    decreaseRDDRefCount(rddId)
+    if (!blockManager.decreaseRDDList.contains(rddId)) {
+      blockManager.decreaseRDDList += rddId
+      decreaseRDDRefCount(rddId)
+    }
     val peerRDDId = blockManager.peers.get(rddId)
-    if (peerRDDId.isDefined) {
+    if (peerRDDId.isDefined && (!blockManager.decreaseRDDList.contains(peerRDDId.get))) {
+      blockManager.decreaseRDDList += peerRDDId.get
       decreaseRDDRefCount(peerRDDId.get)
     }
   }
