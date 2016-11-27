@@ -25,6 +25,7 @@ import org.apache.spark.Logging
 import org.apache.spark.serializer.Serializer
 import org.apache.spark.util.Utils
 import net.smacke.jaydio.DirectRandomAccessFile // for direct i/o in linux system
+import org.apache.spark.storage.BlockManagerMessages.BlockWithPeerEvicted
 /**
  * Stores BlockManager blocks on disk.
  */
@@ -44,6 +45,7 @@ private[spark] class DiskStore(blockManager: BlockManager, diskManager: DiskBloc
     logDebug(s"Attempting to put block $blockId")
     if(blockId.isRDD) {
       logInfo(s"yyh-DiskStore: putting Bytes of $blockId directly to the disk")
+      blockManager.checkPeerLoss(blockId) // yyh: check whether to tell the driverEndPoint
       blockManager.diskWrite += 1
       bytes.rewind()
       val read_size = 1 << 23 // 8 MiB each time at most
@@ -96,6 +98,7 @@ private[spark] class DiskStore(blockManager: BlockManager, diskManager: DiskBloc
 
     logDebug(s"Attempting to write values for block $blockId")
     logInfo(s"yyh: Writing $blockId as iterator to disk")
+    blockManager.checkPeerLoss(blockId) // yyh: check whether to tell the driverEndPoint
     val startTime = System.currentTimeMillis
     val file = diskManager.getFile(blockId)
     val outputStream = new FileOutputStream(file)
