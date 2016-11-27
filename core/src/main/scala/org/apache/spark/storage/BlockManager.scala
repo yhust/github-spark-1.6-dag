@@ -26,6 +26,7 @@ import scala.collection.mutable
 import scala.collection.immutable.List
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Random
 import scala.util.control.NonFatal
 import scala.collection.JavaConverters._
@@ -42,7 +43,7 @@ import org.apache.spark.network.shuffle.protocol.ExecutorShuffleInfo
 import org.apache.spark.rpc.RpcEnv
 import org.apache.spark.serializer.{Serializer, SerializerInstance}
 import org.apache.spark.shuffle.ShuffleManager
-import org.apache.spark.storage.BlockManagerMessages.BlockWithPeerEvicted
+import org.apache.spark.storage.BlockManagerMessages.{BlockWithPeerEvicted}
 import org.apache.spark.util._
 
 import scala.io.Source // yyh
@@ -268,6 +269,7 @@ private[spark] class BlockManager(
 
   }
 
+
   /** yyh
   // Update the refProfile_online upon job submission
   // If thisRefProfile is not provided, read it from the offline profile given the job ID
@@ -276,7 +278,10 @@ private[spark] class BlockManager(
   //// Notice that the 'Peer' is optional. An RDD has at most one peer since no operation
   ////  handles more than two RDDs at the same time
     */
-  def updateRefProfile(jobId: Int, thisRefProfile: Option[mutable.Map[Int, Int]]): Unit = {
+  def updateRefProfile(jobId: Int, thisRefProfile: Option[mutable.Map[Int, Int]]):
+  (mutable.Map[BlockId, Int], mutable.Map[BlockId, Int]) = {
+    // tell the driver the current ref map: for debug
+   // master.reportRefMap(blockManagerId, memoryStore.currentRefMap)
     if (thisRefProfile.isEmpty) {
       // read job dag from profie
       val jobProfile = refProfile_by_Job.get(jobId)
@@ -301,7 +306,8 @@ private[spark] class BlockManager(
     // Tell the memoryStore to update the ref counts of the existing blocks
 
     // yyh !!! only update it for online job DAG !!!!
-    // memoryStore.updateRefCountByJobDAG(refProfile_online)
+    memoryStore.updateRefCountByJobDAG(refProfile_online)
+    (memoryStore.currentRefMap, memoryStore.refMap)
   }
   /**
   private def mergeRefProfile(thisRefProfile: mutable.Map[Int, Int]): Unit = {
@@ -751,6 +757,30 @@ private[spark] class BlockManager(
     None
   }
 
+  /**
+    * yyh get block in a non-blocking way.
+    * Get a block from the block manager (either local or remote).
+    *
+    */
+  def get_future(blockId: BlockId): Future[Option[BlockResult]] = {
+      val local = Future { getLocal(blockId)}
+      val blockData = for ( localData <- local) yield {
+        if (localData.isDefined) {
+          logInfo(s"Found block $blockId locally")
+          localData
+        }
+        else {
+          val remote = getRemote(blockId)
+          if (remote.isDefined) {
+            logInfo(s"Found block $blockId remotely")
+            remote
+          }
+          else None
+      }
+    }
+    blockData
+  }
+
   def putIterator(
       blockId: BlockId,
       values: Iterator[Any],
@@ -935,9 +965,11 @@ private[spark] class BlockManager(
           // Now that the block is in either the memory, externalBlockStore, or disk store,
           // let other threads read it, and tell the master about it.
           marked = true
+
+          /**
           // yyh for all-or-nothing: now we check where the block is cached.
           // If in the disk, check whether to notify the master about it.
-          /**
+            //  => removed this check to diskStore
           if (putBlockStatus.storageLevel == StorageLevel.MEMORY_ONLY){
             logInfo(s"yyh: $blockId is put in memory")
           }
@@ -955,8 +987,6 @@ private[spark] class BlockManager(
             logError(s"yyh: storage level of $blockId is neither Memory_only nor Disk_only")
           }
           */
-
-
 
           putBlockInfo.markReady(size)
           if (tellMaster) {

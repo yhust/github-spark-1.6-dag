@@ -200,6 +200,10 @@ class BlockManagerMasterEndpoint(
       onPeerEvicted(blockId)
       context.reply(true)
 
+    // case ReportRefMap(blockManagerId, currentRefMap) =>
+       // logInfo(s"yyh: received from $blockManagerId, $currentRefMap")
+       // context.reply(true)
+
   }
 
   private def removeRdd(rddId: Int): Future[Seq[Int]] = {
@@ -475,8 +479,12 @@ class BlockManagerMasterEndpoint(
   }
 
   private def broadcastJobDAG(jobId: Int): Unit = {
-    for (slave <- blockManagerInfo.values) {
-      slave.broadcastJobDAG(jobId)
+    for (bm <- blockManagerInfo.values) {
+      val (currentRefMap, refMap) = bm.slaveEndpoint.askWithRetry[(mutable.Map[BlockId, Int],
+        mutable.Map[BlockId, Int])](BroadcastJobDAG(jobId))
+      // val (currentRefMap, refMap) = bm.broadcastJobDAG(jobId)
+      logInfo(s"yyh: Updated CurrentRefMap from $bm: $currentRefMap")
+      logInfo(s"yyh: Updated RefMap from $bm: $refMap")
     }
   }
 
@@ -696,14 +704,15 @@ private[spark] class BlockManagerInfo(
     _cachedBlocks -= blockId
   }
 
-  def broadcastJobDAG(jobId: Int) {
+  // def broadcastJobDAG(jobId: Int): (mutable.Map[BlockId, Int], mutable.Map[BlockId, Int]) = {
     // Currently since the job DAG is not profiled online, no need to broadcast it.
     // All job DAGs have been broadcast in the very beginning.
-    if (!slaveEndpoint.askWithRetry[Boolean](BroadcastJobDAG(jobId))) {
-      throw new SparkException("SlaveEndpoint returned false " +
-        "during broadcasting jobid, expected true.")
-    }
-  }
+    // slaveEndpoint.askWithRetry[(mutable.Map[BlockId, Int],
+    // mutable.Map[BlockId, Int])](BroadcastJobDAG(jobId)) // ){
+      // throw new SparkException("SlaveEndpoint returned false " +
+        // "during broadcasting jobid, expected true.")
+    // }
+  // }
 
   def remainingMem: Long = _remainingMem
 

@@ -25,7 +25,6 @@ import org.apache.spark.Logging
 import org.apache.spark.serializer.Serializer
 import org.apache.spark.util.Utils
 import net.smacke.jaydio.DirectRandomAccessFile // for direct i/o in linux system
-import org.apache.spark.storage.BlockManagerMessages.BlockWithPeerEvicted
 /**
  * Stores BlockManager blocks on disk.
  */

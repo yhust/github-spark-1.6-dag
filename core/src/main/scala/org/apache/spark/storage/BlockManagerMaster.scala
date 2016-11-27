@@ -140,7 +140,9 @@ class BlockManagerMaster(
 
   /** Remove all blocks belonging to the given broadcast. */
   def removeBroadcast(broadcastId: Long, removeFromMaster: Boolean, blocking: Boolean) {
-    return
+
+    return  // disable the master from removing broadcasts
+
     /**
     val future = driverEndpoint.askWithRetry[Future[Seq[Int]]](
       RemoveBroadcast(broadcastId, removeFromMaster))
@@ -152,7 +154,7 @@ class BlockManagerMaster(
     if (blocking) {
       timeout.awaitResult(future)
     }
-    */
+      */
   }
 
   /**
@@ -245,6 +247,13 @@ class BlockManagerMaster(
     driverEndpoint.askWithRetry[(mutable.Map[Int, Int], mutable.Map[Int, mutable.Map[Int, Int]],
       mutable.Map[Int, Int])](GetRefProfile(blockManagerId, slaveEndPoint))
   }
+
+  /**
+    * yyh report the current ref map to the driver. For debug
+     */
+  // def reportRefMap(blockManagerId: BlockManagerId, refMap: mutable.Map[BlockId, Int]): Unit = {
+  //  driverEndpoint.askWithRetry[Boolean](ReportRefMap(blockManagerId, refMap))
+  // }
 
   /**
     * yyh, for all-or-nothing

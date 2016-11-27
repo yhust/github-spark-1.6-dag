@@ -19,6 +19,7 @@ package org.apache.spark.storage
 
 import java.io.{Externalizable, ObjectInput, ObjectOutput}
 import scala.collection.immutable.List
+import scala.collection.mutable
 import org.apache.spark.rpc.RpcEndpointRef
 import org.apache.spark.util.Utils
 
@@ -137,5 +138,8 @@ private[spark] object BlockManagerMessages {
 
   // When a block with peer is evicted, tell the master
   case class BlockWithPeerEvicted(blockId: BlockId) extends ToBlockManagerMaster
+
+  // case class ReportRefMap(blockManagerId: BlockManagerId, refMap: mutable.Map[BlockId, Int])
+   // extends ToBlockManagerMaster
 
 }
