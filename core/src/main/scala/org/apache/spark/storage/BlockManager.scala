@@ -254,6 +254,23 @@ private[spark] class BlockManager(
     }
   }
 
+  /**
+    * yyh On putting rdd blocks in the disk, check whether this block has peers
+    * If yes, tell the driverEndPoint
+    */
+
+  def checkPeerLoss(blockId: BlockId): Unit = {
+    if (memoryStore.refMap.getOrElse(blockId, 0) > 0 // this block has remaining ref count
+      && peers.contains(blockId.asRDDId.toString.split("_")(1).toInt)) {
+      // if this block still has remaining ref count, it means its peer has not been evicted
+      logInfo(s"yyh: $blockId is either rejected or evicted from cache" +
+        s" with nonzero ref count, notify the master of its loss")
+      master.driverEndpoint.askWithRetry[Boolean](BlockWithPeerEvicted(blockId))
+    }
+
+  }
+
+
   /** yyh
   // Update the refProfile_online upon job submission
   // If thisRefProfile is not provided, read it from the offline profile given the job ID
@@ -949,8 +966,11 @@ private[spark] class BlockManager(
           // Now that the block is in either the memory, externalBlockStore, or disk store,
           // let other threads read it, and tell the master about it.
           marked = true
+
+          /**
           // yyh for all-or-nothing: now we check where the block is cached.
           // If in the disk, check whether to notify the master about it.
+            //  => removed this check to diskStore
           if (putBlockStatus.storageLevel == StorageLevel.MEMORY_ONLY){
             logInfo(s"yyh: $blockId is put in memory")
           }
@@ -967,9 +987,7 @@ private[spark] class BlockManager(
           else {
             logError(s"yyh: storage level of $blockId is neither Memory_only nor Disk_only")
           }
-
-
-
+          */
 
           putBlockInfo.markReady(size)
           if (tellMaster) {
