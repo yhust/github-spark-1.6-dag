@@ -21,6 +21,7 @@ import scala.collection.Iterable
 import scala.collection.generic.CanBuildFrom
 import scala.concurrent.{Await, Future}
 import scala.collection.mutable // yyh
+import scala.collection.mutable.HashMap
 import scala.collection.immutable.List
 
 import org.apache.spark.rpc.RpcEndpointRef
@@ -279,6 +280,11 @@ class BlockManagerMaster(
   /** Broadcast the JobId */
   def broadcastJobId(jobId: Int): Unit = {
     tell(StartBroadcastJobId(jobId))
+  }
+
+  /** Broadcast reference count */
+  def broadcastRefCount(refCount: HashMap[Int, Int]): Unit = {
+    tell(StartBroadcastRefCount(refCount))
   }
 
   /** Send a one-way message to the master endpoint, to which we expect it to reply with true. */
