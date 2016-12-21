@@ -85,6 +85,10 @@ class BlockManagerSlaveEndpoint(
 
     case CheckPeersStrictly(blockId) => // yyh for all-or-nothing
       blockManager.memoryStore.checkPeersStrictly(blockId)
+
+    case BroadcastRefCount(refCount) =>
+      // TODO: processing refcount
+      context.reply(true)
   }
 
   private def doAsync[T](actionMessage: String, context: RpcCallContext)(body: => T) {

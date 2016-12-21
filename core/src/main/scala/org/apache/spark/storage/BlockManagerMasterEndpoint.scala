@@ -200,6 +200,9 @@ class BlockManagerMasterEndpoint(
       onPeerEvicted(blockId)
       context.reply(true)
 
+    case StartBroadcastRefCount(refCount) =>
+      context.reply(true)
+
     // case ReportRefMap(blockManagerId, currentRefMap) =>
        // logInfo(s"yyh: received from $blockManagerId, $currentRefMap")
        // context.reply(true)
@@ -485,6 +488,13 @@ class BlockManagerMasterEndpoint(
       // val (currentRefMap, refMap) = bm.broadcastJobDAG(jobId)
       logInfo(s"yyh: Updated CurrentRefMap from $bm: $currentRefMap")
       logInfo(s"yyh: Updated RefMap from $bm: $refMap")
+    }
+  }
+
+  private def broadcastRefCount(refCount: mutable.HashMap[Int, Int]): Unit = {
+    for (bm <- blockManagerInfo.values) {
+      bm.slaveEndpoint.askWithRetry(BroadcastRefCount(refCount))
+      logInfo(s"zcl: broadcasted refcount to $bm")
     }
   }
 

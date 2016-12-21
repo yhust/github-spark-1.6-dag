@@ -17,7 +17,7 @@
 
 package org.apache.spark.scheduler
 
-import java.io.NotSerializableException
+import java.io.{File, NotSerializableException, PrintWriter}
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -28,9 +28,7 @@ import scala.concurrent.duration._
 import scala.language.existentials
 import scala.language.postfixOps
 import scala.util.control.NonFatal
-
 import org.apache.commons.lang3.SerializationUtils
-
 import org.apache.spark._
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.executor.TaskMetrics
@@ -140,6 +138,9 @@ class DAGScheduler(
   private[scheduler] val stageIdToStage = new HashMap[Int, Stage]
   private[scheduler] val shuffleToMapStage = new HashMap[Int, ShuffleMapStage]
   private[scheduler] val jobIdToActiveJob = new HashMap[Int, ActiveJob]
+
+  // Reference count for rdds
+  private val rddIdToRefCount = new HashMap[Int, Int]
 
   // Stages we need to run whose parents aren't done
   private[scheduler] val waitingStages = new HashSet[Stage]
@@ -449,6 +450,13 @@ class DAGScheduler(
                   missing += mapStage
                 }
               case narrowDep: NarrowDependency[_] =>
+                if (narrowDep.rdd.getStorageLevel.useMemory) {
+                  if (rddIdToRefCount.contains(narrowDep.rdd.id)) {
+                    rddIdToRefCount(narrowDep.rdd.id) = rddIdToRefCount(narrowDep.rdd.id) + 1
+                  } else {
+                    rddIdToRefCount + (narrowDep.rdd.id -> 1)
+                  }
+                }
                 waitingForVisit.push(narrowDep.rdd)
             }
           }
@@ -919,6 +927,7 @@ class DAGScheduler(
         logDebug("missing: " + missing)
         if (missing.isEmpty) {
           logInfo("Submitting " + stage + " (" + stage.rdd + "), which has no missing parents")
+          writeRefCountToFile(jobId)
           submitMissingTasks(stage, jobId.get)
         } else {
           for (parent <- missing) {
@@ -930,6 +939,14 @@ class DAGScheduler(
     } else {
       abortStage(stage, "No active job for stage " + stage.id, None)
     }
+  }
+
+  private def writeRefCountToFile(jobId: Option[Int]): Unit = {
+    val des = System.getProperty("user.home") + File.separator +
+      "Documents" + File.separator + jobId + ".txt";
+    val pw = new PrintWriter(des)
+    rddIdToRefCount.keys.foreach( k => pw.write(k + ": " + rddIdToRefCount(k) + "\n"))
+    pw.close()
   }
 
   /** Called when stage's parents are available and we can now do its task. */
