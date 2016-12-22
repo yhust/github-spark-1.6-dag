@@ -450,13 +450,17 @@ class DAGScheduler(
                   missing += mapStage
                 }
               case narrowDep: NarrowDependency[_] =>
-                if (narrowDep.rdd.getStorageLevel.useMemory) {
-                  if (rddIdToRefCount.contains(narrowDep.rdd.id)) {
-                    rddIdToRefCount(narrowDep.rdd.id) = rddIdToRefCount(narrowDep.rdd.id) + 1
-                  } else {
-                    rddIdToRefCount + (narrowDep.rdd.id -> 1)
-                  }
-                }
+//                if (narrowDep.rdd.getStorageLevel.useMemory) {
+//                // if (true) {
+//                  if (rddIdToRefCount.contains(narrowDep.rdd.id)) {
+//                    val temp = rddIdToRefCount(narrowDep.rdd.id) + 1
+//                    rddIdToRefCount.put(narrowDep.rdd.id, temp)
+//                    logWarning("zcladd: RefCount for " + narrowDep.rdd.id + " is " + temp)
+//                  } else {
+//                    rddIdToRefCount.put(narrowDep.rdd.id, 1)
+//                    logWarning("zcl: RefCount for " + narrowDep.rdd.id + " is 1")
+//                  }
+//                }
                 waitingForVisit.push(narrowDep.rdd)
             }
           }
@@ -468,6 +472,71 @@ class DAGScheduler(
       visit(waitingForVisit.pop())
     }
     missing.toList
+  }
+
+  private val profiledStage = new HashSet[Stage]
+  private def profileRefCount(stage: Stage, jobId: Int): Unit = {
+    if (!profiledStage(stage)) {
+      profiledStage += stage
+      logWarning("zcl: profiling stage" + stage + " jobId " + jobId)
+      val missing = profileRefCountByStage(stage, jobId)
+      if (missing.isEmpty) {
+        writeRefCountToFile(jobId)
+      } else {
+        for (parent <- missing) {
+          logWarning("zcl: profiling stage" + stage + " jobId " + jobId + "done")
+          profileRefCount(parent, jobId)
+        }
+      }
+    }
+  }
+
+  /** Profile refcount for rdds backwards */
+  private def profileRefCountByStage(stage: Stage, jobId: Int): List[Stage] = {
+    val missing = new HashSet[Stage]
+    val visited = new HashSet[RDD[_]]
+    val waitingForVisit = new Stack[RDD[_]]
+
+    def visit(rdd: RDD[_]): Unit = {
+      if (!visited(rdd)) {
+        visited += rdd
+        for (dep <- rdd.dependencies) {
+          dep match {
+            case shufDep: ShuffleDependency[_, _, _] =>
+              val mapStage = getShuffleMapStage(shufDep, stage.firstJobId)
+              missing += mapStage
+            case narrowDep: NarrowDependency[_] =>
+              if (narrowDep.rdd.getStorageLevel.useMemory) {
+                // if (true) {
+                if (rddIdToRefCount.contains(narrowDep.rdd.id)) {
+                  val temp = rddIdToRefCount(narrowDep.rdd.id) + 1
+                  rddIdToRefCount.put(narrowDep.rdd.id, temp)
+                  logWarning("zcladd: RefCount for " + narrowDep.rdd.id + " is " + temp)
+                } else {
+                  rddIdToRefCount.put(narrowDep.rdd.id, 1)
+                  logWarning("zcl: RefCount for " + narrowDep.rdd.id + " is 1")
+                }
+              }
+              waitingForVisit.push(narrowDep.rdd)
+          }
+        }
+      }
+
+    }
+    waitingForVisit.push(stage.rdd)
+    while (waitingForVisit.nonEmpty) {
+      visit(waitingForVisit.pop())
+    }
+    missing.toList
+  }
+
+  private def writeRefCountToFile(jobId: Int): Unit = {
+    val des = System.getProperty("user.home") + File.separator +
+      "Documents" + File.separator + "counts"+ File.separator + jobId + ".txt";
+    val pw = new PrintWriter(des)
+    rddIdToRefCount.keys.foreach( k => pw.write(k + ": " + rddIdToRefCount(k) + "\n"))
+    // rddIdToRefCount.clear()
+    pw.close()
   }
 
   /**
@@ -867,6 +936,8 @@ class DAGScheduler(
     val stageInfos = stageIds.flatMap(id => stageIdToStage.get(id).map(_.latestInfo))
     listenerBus.post(
       SparkListenerJobStart(job.jobId, jobSubmissionTime, stageInfos, properties))
+    // zcl: profile ref count before construction of stages
+    profileRefCount(finalStage, jobId)
     submitStage(finalStage)
 
     submitWaitingStages()
@@ -927,7 +998,6 @@ class DAGScheduler(
         logDebug("missing: " + missing)
         if (missing.isEmpty) {
           logInfo("Submitting " + stage + " (" + stage.rdd + "), which has no missing parents")
-          writeRefCountToFile(jobId)
           submitMissingTasks(stage, jobId.get)
         } else {
           for (parent <- missing) {
@@ -939,14 +1009,6 @@ class DAGScheduler(
     } else {
       abortStage(stage, "No active job for stage " + stage.id, None)
     }
-  }
-
-  private def writeRefCountToFile(jobId: Option[Int]): Unit = {
-    val des = System.getProperty("user.home") + File.separator +
-      "Documents" + File.separator + jobId + ".txt";
-    val pw = new PrintWriter(des)
-    rddIdToRefCount.keys.foreach( k => pw.write(k + ": " + rddIdToRefCount(k) + "\n"))
-    pw.close()
   }
 
   /** Called when stage's parents are available and we can now do its task. */
