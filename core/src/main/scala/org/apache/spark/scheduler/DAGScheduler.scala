@@ -672,9 +672,11 @@ class DAGScheduler(
     logWarning("zcl: profiling" + " jobId " + jobId + "done" + " rdd: " + rdd.id)
   }
 
-  val waitingReStages = new Queue[RDD[_]]
-  val visitedStageRDDs = new HashSet[Int]
+  private val waitingReStages = new Queue[RDD[_]]
+  private val visitedStageRDDs = new HashSet[Int]
   private val expendedNodes = new HashSet[Int]
+  private val droppedRDDs = new HashSet[Int]
+
 
   private def profileRefCountStageByStage(rdd: RDD[_], jobId: Int): Unit = {
     logWarning("zcl: profiling" + " jobId " + jobId + " rdd: " + rdd.id
@@ -688,9 +690,10 @@ class DAGScheduler(
 
   private def profileRefCountOneStage(rdd: RDD[_], jobId: Int): Unit = {
     val waitingForVisit = new Stack[RDD[_]]
-    val newInMemoryRDDs: mutable.MutableList[Int] = mutable.MutableList()
-    if (rdd.getStorageLevel.useMemory && (!expendedNodes.contains(rdd.id))) {
+    var newInMemoryRDDs: mutable.MutableList[Int] = mutable.MutableList()
+    if (rdd.getStorageLevel.useMemory) {
       newInMemoryRDDs += rdd.id
+      droppedRDDs += rdd.id
     }
     if (!visitedStageRDDs.contains(rdd.id)) {
       visitedStageRDDs += rdd.id
@@ -723,11 +726,8 @@ class DAGScheduler(
             if (!expendedNodes.contains(narrowDep.rdd.id)) {
               waitingForVisit.push(narrowDep.rdd)
             }
-            if ((!expendedNodes.contains(narrowDep.rdd.id)) &&
-              narrowDep.rdd.getStorageLevel.useMemory) {
-              newInMemoryRDDs += narrowDep.rdd.id
-            }
             if (narrowDep.rdd.getStorageLevel.useMemory) {
+              newInMemoryRDDs += narrowDep.rdd.id
               if (rddIdToRefCount.contains(narrowDep.rdd.id)) {
                 val temp = rddIdToRefCount(narrowDep.rdd.id) + 1
                 rddIdToRefCount.put(narrowDep.rdd.id, temp)
@@ -748,10 +748,12 @@ class DAGScheduler(
     }
 
     if (newInMemoryRDDs.length > 0) {
-      newInMemoryRDDs.sortWith(_ > _)
+      newInMemoryRDDs = newInMemoryRDDs.sortWith(_ > _)
       val can = newInMemoryRDDs(0)
-      logWarning("zcl: dropping a refcount for rdd: " + can)
-      if (rddIdToRefCount.contains(can)) {
+      logWarning("zcl: dropping: " + newInMemoryRDDs.toString() + " " + can)
+      if (rddIdToRefCount.contains(can) && (!droppedRDDs.contains(can))) {
+        logWarning("zcl: dropping a refcount for rdd: " + can)
+        droppedRDDs += can
         if (rddIdToRefCount(can) > 1) {
           val temp = rddIdToRefCount(can) - 1
           rddIdToRefCount.put(can, temp)
