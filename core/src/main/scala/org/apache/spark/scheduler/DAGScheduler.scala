@@ -450,17 +450,6 @@ class DAGScheduler(
                   missing += mapStage
                 }
               case narrowDep: NarrowDependency[_] =>
-//                if (narrowDep.rdd.getStorageLevel.useMemory) {
-//                // if (true) {
-//                  if (rddIdToRefCount.contains(narrowDep.rdd.id)) {
-//                    val temp = rddIdToRefCount(narrowDep.rdd.id) + 1
-//                    rddIdToRefCount.put(narrowDep.rdd.id, temp)
-//                    logWarning("zcladd: RefCount for " + narrowDep.rdd.id + " is " + temp)
-//                  } else {
-//                    rddIdToRefCount.put(narrowDep.rdd.id, 1)
-//                    logWarning("zcl: RefCount for " + narrowDep.rdd.id + " is 1")
-//                  }
-//                }
                 waitingForVisit.push(narrowDep.rdd)
             }
           }
@@ -474,207 +463,14 @@ class DAGScheduler(
     missing.toList
   }
 
-  private val profiledStage = new HashSet[Stage]
-  private def profileRefCount(stage: Stage, jobId: Int): Unit = {
-    if (!profiledStage(stage)) {
-      profiledStage += stage
-      logWarning("zcl: profiling stage" + stage + " jobId " + jobId)
-      val missing = profileRefCountByStage(stage, jobId)
-      if (missing.isEmpty) {
-        writeRefCountToFile(jobId)
-      } else {
-        for (parent <- missing) {
-          logWarning("zcl: profiling stage" + stage + " jobId " + jobId + "done")
-          profileRefCount(parent, jobId)
-        }
-      }
-    }
-  }
 
-  private def profileRefCountSimple(stage: Stage, jobId: Int): Unit = {
-    logWarning("zcl: profiling stage " + stage + " jobId " + jobId)
-    val waitingForVisit = new Stack[RDD[_]]
-    val visited = new HashSet[RDD[_]]
-    def visit(rdd: RDD[_]): Unit = {
-      if (!visited(rdd)) {
-        visited += rdd
-        for (dep <- rdd.dependencies) {
-          dep match {
-            case shufDep: ShuffleDependency[_, _, _] =>
-              waitingForVisit.push(shufDep.rdd)
-              logWarning("zcl: shuffllede for " + rdd.id +
-                ", get parent direnctly" + shufDep.rdd.id)
-            case narrowDep: NarrowDependency[_] =>
-              if (narrowDep.rdd.getStorageLevel.useMemory) {
-                // if (true) {
-                if (rddIdToRefCount.contains(narrowDep.rdd.id)) {
-                  val temp = rddIdToRefCount(narrowDep.rdd.id) + 1
-                  rddIdToRefCount.put(narrowDep.rdd.id, temp)
-                  logWarning("zcl: RefCount for " + narrowDep.rdd.id + " is " + temp)
-                } else {
-                  rddIdToRefCount.put(narrowDep.rdd.id, 1)
-                  logWarning("zcl: RefCount for " + narrowDep.rdd.id + " is 1")
-                }
-              }
-              waitingForVisit.push(narrowDep.rdd)
-          }
-        }
-      }
-
-    }
-    waitingForVisit.push(stage.rdd)
-    while (waitingForVisit.nonEmpty) {
-      visit(waitingForVisit.pop())
-    }
-    writeRefCountToFile(jobId)
-    logWarning("zcl: profiling stage " + stage + " jobId " + jobId + "done")
-  }
-
-  private def profileRefCountSimple(rdd: RDD[_], jobId: Int): Unit = {
-    logWarning("zcl: profiling" + " jobId " + jobId)
-    val waitingForVisit = new Stack[RDD[_]]
-    val visited = new HashSet[RDD[_]]
-    def visit(rdd: RDD[_]): Unit = {
-      if (!visited(rdd)) {
-        visited += rdd
-        for (dep <- rdd.dependencies) {
-          dep match {
-            case shufDep: ShuffleDependency[_, _, _] =>
-              waitingForVisit.push(shufDep.rdd)
-              logWarning("zcl: shuffllede for " + rdd.id +
-                ", get parent direnctly" + shufDep.rdd.id)
-            case narrowDep: NarrowDependency[_] =>
-              if (narrowDep.rdd.getStorageLevel.useMemory) {
-                // if (true) {
-                if (rddIdToRefCount.contains(narrowDep.rdd.id)) {
-                  val temp = rddIdToRefCount(narrowDep.rdd.id) + 1
-                  rddIdToRefCount.put(narrowDep.rdd.id, temp)
-                  logWarning("zcl: RefCount for " + narrowDep.rdd.id + " is " + temp)
-                } else {
-                  rddIdToRefCount.put(narrowDep.rdd.id, 1)
-                  logWarning("zcl: RefCount for " + narrowDep.rdd.id + " is 1")
-                }
-              }
-              waitingForVisit.push(narrowDep.rdd)
-          }
-        }
-      }
-
-    }
-    waitingForVisit.push(rdd)
-    while (waitingForVisit.nonEmpty) {
-      visit(waitingForVisit.pop())
-    }
-    writeRefCountToFile(jobId)
-    logWarning("zcl: profiling" + " jobId " + jobId + "done")
-  }
-
-  /** Profile refcount for rdds backwards */
-  private def profileRefCountByStage(stage: Stage, jobId: Int): List[Stage] = {
-    val missing = new HashSet[Stage]
-    val visited = new HashSet[RDD[_]]
-    val waitingForVisit = new Stack[RDD[_]]
-
-    def visit(rdd: RDD[_]): Unit = {
-      if (!visited(rdd)) {
-        visited += rdd
-        for (dep <- rdd.dependencies) {
-          dep match {
-            case shufDep: ShuffleDependency[_, _, _] =>
-              val mapStage = getShuffleMapStage(shufDep, stage.firstJobId)
-              missing += mapStage
-            case narrowDep: NarrowDependency[_] =>
-              if (narrowDep.rdd.getStorageLevel.useMemory) {
-                // if (true) {
-                if (rddIdToRefCount.contains(narrowDep.rdd.id)) {
-                  val temp = rddIdToRefCount(narrowDep.rdd.id) + 1
-                  rddIdToRefCount.put(narrowDep.rdd.id, temp)
-                  logWarning("zcladd: RefCount for " + narrowDep.rdd.id + " is " + temp)
-                } else {
-                  rddIdToRefCount.put(narrowDep.rdd.id, 1)
-                  logWarning("zcl: RefCount for " + narrowDep.rdd.id + " is 1")
-                }
-              }
-              waitingForVisit.push(narrowDep.rdd)
-          }
-        }
-      }
-
-    }
-    waitingForVisit.push(stage.rdd)
-    while (waitingForVisit.nonEmpty) {
-      visit(waitingForVisit.pop())
-    }
-    missing.toList
-  }
-
-  private def profileRefCountRecursively(rdd: RDD[_], jobId: Int): Unit = {
-    logWarning("zcl: profiling" + " jobId " + jobId + " rdd: " + rdd.id
-      + " " + rdd.getStorageLevel.useMemory)
-    val waitingForVisit = new Stack[RDD[_]]
-    var skipDrop = false
-    val newInMemoryRDDs: mutable.MutableList[Int] = mutable.MutableList()
-    if (rdd.getStorageLevel.useMemory && (!expendedNodes.contains(rdd.id))) {
-      newInMemoryRDDs += rdd.id
-    }
-    def visit(rdd: RDD[_]): Unit = {
-      expendedNodes.add(rdd.id)
-      for (dep <- rdd.dependencies) {
-        logWarning("zcl: processing dependency between rdd: " + rdd.id + " " + dep.rdd.id)
-        dep match {
-          case shufDep: ShuffleDependency[_, _, _] =>
-            logWarning("zcl: shuffllede between " + rdd.id +
-              " and " + shufDep.rdd.id + ", recersive")
-            profileRefCountRecursively(shufDep.rdd, jobId)
-          case narrowDep: NarrowDependency[_] =>
-            if (!expendedNodes.contains(narrowDep.rdd.id)) {
-              waitingForVisit.push(narrowDep.rdd)
-            }
-            if ((!expendedNodes.contains(narrowDep.rdd.id)) &&
-              narrowDep.rdd.getStorageLevel.useMemory) {
-              newInMemoryRDDs += narrowDep.rdd.id
-            }
-            expendedNodes.add(rdd.id)
-            if (narrowDep.rdd.getStorageLevel.useMemory) {
-
-              if (rddIdToRefCount.contains(narrowDep.rdd.id)) {
-                val temp = rddIdToRefCount(narrowDep.rdd.id) + 1
-                rddIdToRefCount.put(narrowDep.rdd.id, temp)
-                logWarning("zcl: RefCount for " + narrowDep.rdd.id + " is " + temp)
-              } else {
-                rddIdToRefCount.put(narrowDep.rdd.id, 1)
-                logWarning("zcl: RefCount for " + narrowDep.rdd.id + " is 1")
-              }
-            }
-            // expendedNodes.add(rdd)
-
-          }
-      }
-    }
-
-    waitingForVisit.push(rdd)
-    while (waitingForVisit.nonEmpty) {
-      visit(waitingForVisit.pop())
-    }
-    if (newInMemoryRDDs.length > 0) {
-      newInMemoryRDDs.sortWith(_ > _)
-      val can = newInMemoryRDDs(0)
-      logWarning("zcl: dropping a refcount for rdd: " + can)
-      if (rddIdToRefCount.contains(can)) {
-        if (rddIdToRefCount(can) > 1) {
-          val temp = rddIdToRefCount(can) - 1
-          rddIdToRefCount.put(can, temp)
-        } else {
-          rddIdToRefCount.drop(can)
-        }
-      }
-    }
-    logWarning("zcl: profiling" + " jobId " + jobId + "done" + " rdd: " + rdd.id)
-  }
-
+  // The list for stages to visit
   private val waitingReStages = new Queue[RDD[_]]
+  // Keep track of visited stages, so skip them if encounter again
   private val visitedStageRDDs = new HashSet[Int]
+  // Expended in memory nodes
   private val expendedNodes = new HashSet[Int]
+  // Keep track of the dropped one RDDs
   private val droppedRDDs = new HashSet[Int]
 
 
@@ -689,12 +485,16 @@ class DAGScheduler(
   }
 
   private def profileRefCountOneStage(rdd: RDD[_], jobId: Int): Unit = {
+    // RDDs pending to visit in the same stage
     val waitingForVisit = new Stack[RDD[_]]
+    // Last in memory RDD ref count should sub 1
     var newInMemoryRDDs: mutable.MutableList[Int] = mutable.MutableList()
+    // if the final RDD of this stage is in memory
     if (rdd.getStorageLevel.useMemory) {
       newInMemoryRDDs += rdd.id
       droppedRDDs += rdd.id
     }
+    // Dont start with the same RDD twice
     if (!visitedStageRDDs.contains(rdd.id)) {
       visitedStageRDDs += rdd.id
     } else {
@@ -702,6 +502,7 @@ class DAGScheduler(
       return
     }
     def visit(rdd: RDD[_]): Unit = {
+      // Expending a RDD
       if (rdd.getStorageLevel.useMemory) {
         expendedNodes.add(rdd.id)
       }
@@ -746,7 +547,7 @@ class DAGScheduler(
     while (waitingForVisit.nonEmpty) {
       visit(waitingForVisit.pop())
     }
-
+    // Drop 1 ref count of the in memory RDD with the biggest id
     if (newInMemoryRDDs.length > 0) {
       newInMemoryRDDs = newInMemoryRDDs.sortWith(_ > _)
       val can = newInMemoryRDDs(0)
