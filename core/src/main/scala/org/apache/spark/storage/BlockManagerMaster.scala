@@ -242,11 +242,12 @@ class BlockManagerMaster(
     * yyh, get the refProfile from the driver, including appDAG, jobDAGs and peer information
     */
   def getRefProfile(blockManagerId: BlockManagerId, slaveEndPoint: RpcEndpointRef):
-  (mutable.Map[Int, Int], mutable.Map[Int, mutable.Map[Int, Int]],
-    mutable.Map[Int, Int]) = {
+  (mutable.HashMap[Int, Int], mutable.HashMap[Int, mutable.HashMap[Int, Int]],
+    mutable.HashMap[Int, Int]) = {
     logInfo(s"yyh: $blockManagerId try to get refprofile from the master endpoint")
-    driverEndpoint.askWithRetry[(mutable.Map[Int, Int], mutable.Map[Int, mutable.Map[Int, Int]],
-      mutable.Map[Int, Int])](GetRefProfile(blockManagerId, slaveEndPoint))
+    driverEndpoint.askWithRetry[(mutable.HashMap[Int, Int], mutable.HashMap[Int,
+      mutable.HashMap[Int, Int]], mutable.HashMap[Int, Int])](GetRefProfile
+      (blockManagerId, slaveEndPoint))
   }
 
   /**
@@ -283,8 +284,8 @@ class BlockManagerMaster(
   }
 
   /** Broadcast reference count */
-  def broadcastRefCount(refCount: HashMap[Int, Int]): Unit = {
-    tell(StartBroadcastRefCount(refCount))
+  def broadcastRefCount(jobId: Int, refCount: HashMap[Int, Int]): Unit = {
+    tell(StartBroadcastRefCount(jobId, refCount))
   }
 
   /** Send a one-way message to the master endpoint, to which we expect it to reply with true. */

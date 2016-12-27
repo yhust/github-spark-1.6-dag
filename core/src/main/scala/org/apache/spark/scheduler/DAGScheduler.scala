@@ -483,6 +483,7 @@ class DAGScheduler(
       profileRefCountOneStage(waitingReStages.dequeue(), jobId, refCountByJob)
     }
     logWarning("zcl: profiling" + " jobId " + jobId + "done" + " rdd: " + rdd.id)
+    blockManagerMaster.broadcastRefCount(jobId, refCountByJob)
     writeRefCountToFile(jobId, refCountByJob)
   }
 
@@ -708,7 +709,7 @@ class DAGScheduler(
     }
 
     val jobId = nextJobId.getAndIncrement()
-    blockManagerMaster.broadcastJobId(jobId)
+    // blockManagerMaster.broadcastJobId(jobId)
     if (partitions.size == 0) {
       // Return immediately if the job is running 0 tasks
       return new JobWaiter[U](this, jobId, 0, resultHandler)

@@ -42,9 +42,9 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
 
   private val conf = blockManager.conf
   private val entries = new LinkedHashMap[BlockId, MemoryEntry](32, 0.75f, true)
-  var refMap = mutable.Map[BlockId, Int]()  // yyh no recency. remaining refCount of
+  var refMap = mutable.HashMap[BlockId, Int]()  // yyh no recency. remaining refCount of
   // all blocks in cache and disk
-  var currentRefMap = mutable.Map[BlockId, Int]() // remaining refCount of blocks in cache
+  var currentRefMap = mutable.HashMap[BlockId, Int]() // remaining refCount of blocks in cache
 
 
   // A mapping from taskAttemptId to amount of memory used for unrolling a block (in bytes)
@@ -765,16 +765,16 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
   /**
   filter blocks by rddId. If the rddId is in the jobDAG profile, update the block ref count.
     */
-  private def updateFilter(blockId: BlockId, origin: Int, jobDAG: mutable.Map[Int, Int]) = {
+  private def updateFilter(blockId: BlockId, origin: Int, jobDAG: mutable.HashMap[Int, Int]) = {
     val rddId = blockId.asRDDId.toString.split("_")(1).toInt
-    origin + jobDAG.getOrElse(rddId, 0)
+    origin + jobDAG.getOrElse(rddId, 0) // incremental
   }
 
 
   /**
   Update both refMap and currentRefMap with the received jobDAG in BlockManager
     */
-  def updateRefCountByJobDAG(jobDAG: mutable.Map[Int, Int]): Unit = {
+  def updateRefCountByJobDAG(jobDAG: mutable.HashMap[Int, Int]): Unit = {
     logInfo(s"yyh: Update ref maps on receiving job DAG: $jobDAG")
     logInfo(s"yyh: before: currentRefMap: $currentRefMap")
     refMap.synchronized {
