@@ -175,11 +175,11 @@ private[spark] class BlockManager(
 
   private val NON_TASK_WRITER = -1024L
 
-  var refProfile = mutable.Map[Int, Int]() // yyh
-  var refProfile_by_Job = mutable.Map[Int, mutable.Map[Int, Int]]() // job refProfile profiled offline
-  var refProfile_online = mutable.Map[Int, Int]() // refProfile maintained online
+  var refProfile = mutable.HashMap[Int, Int]() // yyh
+  var refProfile_by_Job = mutable.HashMap[Int, mutable.HashMap[Int, Int]]() // job refProfile profiled offline
+  var refProfile_online = mutable.HashMap[Int, Int]() // refProfile maintained online
   // Be careful that refProfile_online is replaced once a new job is submitted: no parallel jobs!
-  var peers = mutable.Map[Int, Int]()
+  var peers = mutable.HashMap[Int, Int]()
   var peerLostBlocks = new mutable.MutableList[BlockId] // yyh for all-or-nothing property
   // for those blocks that have lost their peers
   // Be careful that currently we do not consider re-admission of their peers.
@@ -216,9 +216,9 @@ private[spark] class BlockManager(
     logInfo(s"yyh: block manager $blockManagerId has been registered, now try to get refProfile")
     val (appDAG, jobDAG, peerProfile) = master.getRefProfile(blockManagerId, slaveEndpoint)
     // yyh: we can't assign values to a var tuple. Use val tuple instead.
-    refProfile = mutable.Map(appDAG.toSeq: _*)
-    refProfile_by_Job = mutable.Map(jobDAG.toSeq: _*)
-    peers = mutable.Map(peerProfile.toSeq: _*)
+    refProfile = mutable.HashMap(appDAG.toSeq: _*)
+    refProfile_by_Job = mutable.HashMap(jobDAG.toSeq: _*)
+    peers = mutable.HashMap(peerProfile.toSeq: _*)
 
     logInfo(s"yyh: block manager $blockManagerId has read the refProfile")
     // for ((k, v) <- refProfile) printf("key: %s, value: %s\n", k, v)
@@ -279,8 +279,8 @@ private[spark] class BlockManager(
   //// Notice that the 'Peer' is optional. An RDD has at most one peer since no operation
   ////  handles more than two RDDs at the same time
     */
-  def updateRefProfile(jobId: Int, thisRefProfile: Option[mutable.Map[Int, Int]]):
-  (mutable.Map[BlockId, Int], mutable.Map[BlockId, Int]) = {
+  def updateRefProfile(jobId: Int, thisRefProfile: Option[mutable.HashMap[Int, Int]]):
+  (mutable.HashMap[BlockId, Int], mutable.HashMap[BlockId, Int]) = {
     // tell the driver the current ref map: for debug
    // master.reportRefMap(blockManagerId, memoryStore.currentRefMap)
     if (thisRefProfile.isEmpty) {
@@ -306,7 +306,7 @@ private[spark] class BlockManager(
     }
     // Tell the memoryStore to update the ref counts of the existing blocks
 
-    // yyh !!! only update it for online job DAG !!!!
+    // yyh !!! only update it for online job DAG !!!! comment the code in the memorystore
     memoryStore.updateRefCountByJobDAG(refProfile_online)
     (memoryStore.currentRefMap, memoryStore.refMap)
   }

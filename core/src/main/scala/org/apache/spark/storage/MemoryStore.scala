@@ -44,9 +44,9 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
 
   private val conf = blockManager.conf
   private val entries = new LinkedHashMap[BlockId, MemoryEntry](32, 0.75f, true)
-  var refMap = mutable.Map[BlockId, Int]()  // yyh no recency. remaining refCount of
+  var refMap = mutable.HashMap[BlockId, Int]()  // yyh no recency. remaining refCount of
   // all blocks in cache and disk
-  var currentRefMap = mutable.Map[BlockId, Int]() // remaining refCount of blocks in cache
+  var currentRefMap = mutable.HashMap[BlockId, Int]() // remaining refCount of blocks in cache
 
   // A mapping from taskAttemptId to amount of memory used for unrolling a block (in bytes)
   // All accesses of this map are assumed to have manually synchronized on `memoryManager`
@@ -807,6 +807,8 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     */
   def updateRefCountByJobDAG(jobDAG: mutable.Map[Int, Int]): Unit = {
     logInfo(s"yyh: Update ref maps on receiving job DAG: $jobDAG")
+
+    // yyh!!!! comment the below for LRC with app-DAG
     /**
     logInfo(s"yyh: before: currentRefMap: $currentRefMap")
     refMap.synchronized {
@@ -816,7 +818,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       currentRefMap = currentRefMap.map{ case (k, v) => (k, updateFilter(k, v, jobDAG))}
     }
     logInfo(s"yyh: after: currentRefMap: $currentRefMap")
-      */
+    */
   }
 
   /**
