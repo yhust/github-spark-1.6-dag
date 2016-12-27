@@ -63,8 +63,8 @@ class BlockManagerMasterEndpoint(
   var RDDMiss = 0
   var diskRead = 0
   var diskWrite = 0
-  private val refProfile = mutable.Map[Int, Int]() // yyh
-  private val refProfile_By_Job = mutable.Map[Int, mutable.Map[Int, Int]]()
+  private val refProfile = mutable.HashMap[Int, Int]() // yyh
+  private val refProfile_By_Job = mutable.HashMap[Int, mutable.HashMap[Int, Int]]()
   private val appName = conf.getAppName.filter(!" ".contains(_))
   val path = System.getProperty("user.dir")
   val appDAG = path + "/" + appName + ".txt"
@@ -83,7 +83,7 @@ class BlockManagerMasterEndpoint(
     for (line <- Source.fromFile(jobDAG).getLines()) {
       val z = line.split("-")
       val jobId = z(0).toInt
-      val this_refProfile = mutable.Map[Int, Int]()
+      val this_refProfile = mutable.HashMap[Int, Int]()
       if (z.length > 1) {
         // some jobs may have no rdd refs
         val refs = z(1).split(";")
@@ -97,7 +97,7 @@ class BlockManagerMasterEndpoint(
   }
   /** for all-or-nothing property */
 
-  private val peerProfile = mutable.Map[Int, Int]()
+  private val peerProfile = mutable.HashMap[Int, Int]()
   // Notice that each rdd has at most one peer rdd, as no operation handles more than two RDDs
   // Be careful, here we only assume that all the peers are only required once.
   // That means once either of the peer got evicted, it is safe to clear the ref count of the other
@@ -198,6 +198,10 @@ class BlockManagerMasterEndpoint(
 
     case BlockWithPeerEvicted(blockId) => // yyh
       onPeerEvicted(blockId)
+      context.reply(true)
+
+    case StartBroadcastRefCount(jobId, refCount) =>
+      broadcastJobDAG(jobId, refCount)
       context.reply(true)
 
     // case ReportRefMap(blockManagerId, currentRefMap) =>
@@ -481,12 +485,33 @@ class BlockManagerMasterEndpoint(
   private def broadcastJobDAG(jobId: Int): Unit = {
     for (bm <- blockManagerInfo.values) {
       val (currentRefMap, refMap) = bm.slaveEndpoint.askWithRetry[(mutable.Map[BlockId, Int],
-        mutable.Map[BlockId, Int])](BroadcastJobDAG(jobId))
+        mutable.Map[BlockId, Int])](BroadcastJobDAG(jobId, None))
       // val (currentRefMap, refMap) = bm.broadcastJobDAG(jobId)
       logInfo(s"yyh: Updated CurrentRefMap from $bm: $currentRefMap")
       logInfo(s"yyh: Updated RefMap from $bm: $refMap")
     }
   }
+
+  private def broadcastJobDAG(jobId: Int, refCount: mutable.HashMap[Int, Int]): Unit = {
+    logInfo(s"yyh: Start to broadcast the profiled refCount of job $jobId")
+    logInfo(s"$refCount")
+    for (bm <- blockManagerInfo.values) {
+      val (currentRefMap, refMap) = bm.slaveEndpoint.askWithRetry[(mutable.HashMap[BlockId, Int],
+        mutable.HashMap[BlockId, Int])](BroadcastJobDAG(jobId, Some(refCount)))
+      // val (currentRefMap, refMap) = bm.broadcastJobDAG(jobId)
+      logInfo(s"yyh: Updated CurrentRefMap from $bm: $currentRefMap")
+      logInfo(s"yyh: Updated RefMap from $bm: $refMap")
+    }
+  }
+
+  /**
+  private def broadcastRefCount(refCount: mutable.HashMap[Int, Int]): Unit = {
+    for (bm <- blockManagerInfo.values) {
+      bm.slaveEndpoint.askWithRetry(BroadcastRefCount(refCount))
+      logInfo(s"zcl: broadcasted refcount to $bm")
+    }
+  }
+  */
 
   private def updateCacheHit(blockManagerId: BlockManagerId, list: List[Int]):
   Boolean = {
@@ -505,8 +530,8 @@ class BlockManagerMasterEndpoint(
   }
 
   private def getRefProfile(blockManagerId: BlockManagerId, slaveEndPoint: RpcEndpointRef):
-  (mutable.Map[Int, Int], mutable.Map[Int, mutable.Map[Int, Int]],
-    mutable.Map[Int, Int]) = {
+  (mutable.HashMap[Int, Int], mutable.HashMap[Int, mutable.HashMap[Int, Int]],
+    mutable.HashMap[Int, Int]) = {
     logDebug(s"yyh: Got the request of refProfile from block manager $blockManagerId, responding")
     (refProfile, refProfile_By_Job, peerProfile)
   }
