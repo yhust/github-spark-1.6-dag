@@ -484,7 +484,7 @@ class DAGScheduler(
     }
     logWarning("zcl: profiling" + " jobId " + jobId + "done" + " rdd: " + rdd.id)
     blockManagerMaster.broadcastRefCount(jobId, refCountByJob)
-    // writeRefCountToFile(jobId, refCountByJob)
+    writeRefCountToFile(jobId, refCountByJob)
   }
 
   private def profileRefCountOneStage(rdd: RDD[_], jobId: Int,
