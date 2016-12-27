@@ -477,14 +477,17 @@ class DAGScheduler(
   private def profileRefCountStageByStage(rdd: RDD[_], jobId: Int): Unit = {
     logWarning("zcl: profiling" + " jobId " + jobId + " rdd: " + rdd.id
       + " " + rdd.getStorageLevel.useMemory)
-    profileRefCountOneStage(rdd, jobId)
+    val refCountByJob = new HashMap[Int, Int]
+    profileRefCountOneStage(rdd, jobId, refCountByJob)
     while (!waitingReStages.isEmpty) {
-      profileRefCountOneStage(waitingReStages.dequeue(), jobId)
+      profileRefCountOneStage(waitingReStages.dequeue(), jobId, refCountByJob)
     }
     logWarning("zcl: profiling" + " jobId " + jobId + "done" + " rdd: " + rdd.id)
+    writeRefCountToFile(jobId, refCountByJob)
   }
 
-  private def profileRefCountOneStage(rdd: RDD[_], jobId: Int): Unit = {
+  private def profileRefCountOneStage(rdd: RDD[_], jobId: Int,
+                                      refCountById: HashMap[Int, Int]): Unit = {
     // RDDs pending to visit in the same stage
     val waitingForVisit = new Stack[RDD[_]]
     // Last in memory RDD ref count should sub 1
@@ -524,7 +527,8 @@ class DAGScheduler(
                 " and " + shufDep.rdd.id + " skip")
             }
           case narrowDep: NarrowDependency[_] =>
-            if (!expendedNodes.contains(narrowDep.rdd.id)) {
+            if ((!expendedNodes.contains(narrowDep.rdd.id))
+              && (!waitingForVisit.contains(narrowDep.rdd))) {
               waitingForVisit.push(narrowDep.rdd)
             }
             if (narrowDep.rdd.getStorageLevel.useMemory) {
@@ -536,6 +540,14 @@ class DAGScheduler(
               } else {
                 rddIdToRefCount.put(narrowDep.rdd.id, 1)
                 logWarning("zcl: RefCount for " + narrowDep.rdd.id + " is 1")
+              }
+              if (refCountById.contains(narrowDep.rdd.id)) {
+                val temp = refCountById(narrowDep.rdd.id) + 1
+                refCountById.put(narrowDep.rdd.id, temp)
+                // logWarning("zcl: RefCount for " + narrowDep.rdd.id + " is " + temp)
+              } else {
+                refCountById.put(narrowDep.rdd.id, 1)
+                // logWarning("zcl: RefCount for " + narrowDep.rdd.id + " is 1")
               }
             }
           // expendedNodes.add(rdd)
@@ -561,17 +573,28 @@ class DAGScheduler(
         } else {
           rddIdToRefCount -= can
         }
+        if (refCountById.contains(can)) {
+          if (refCountById(can) > 1) {
+            val temp = refCountById(can) - 1
+            refCountById.put(can, temp)
+          } else {
+            refCountById -= can
+          }
+        }
       }
     }
   }
 
-  private def writeRefCountToFile(jobId: Int): Unit = {
+  private def writeRefCountToFile(jobId: Int, refCountById: HashMap[Int, Int]): Unit = {
     val des = System.getProperty("user.home") + File.separator +
       "Documents" + File.separator + "counts" + File.separator + jobId + ".txt";
     val pw = new PrintWriter(des)
     val it = rddIdToRefCount.keySet.toList.sortWith(_ < _)
     it.foreach( k => pw.write(k + ": " + rddIdToRefCount(k) + "\n"))
     // rddIdToRefCount.clear()
+    pw.write("\n\n")
+    val it1 = refCountById.keySet.toList.sortWith(_ < _)
+    it1.foreach( k => pw.write(k + ": " + refCountById(k) + "\n"))
     pw.close()
   }
 
@@ -978,7 +1001,7 @@ class DAGScheduler(
     // profileRefCount(finalStage, jobId)
     // profileRefCountSimple(finalStage, jobId)
     profileRefCountStageByStage(finalRDD, jobId)
-    writeRefCountToFile(jobId)
+
     submitStage(finalStage)
 
     submitWaitingStages()
