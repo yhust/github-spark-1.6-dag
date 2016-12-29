@@ -283,12 +283,13 @@ private[spark] class BlockManager(
   (mutable.HashMap[BlockId, Int], mutable.HashMap[BlockId, Int]) = {
     // tell the driver the current ref map: for debug
    // master.reportRefMap(blockManagerId, memoryStore.currentRefMap)
+    var this_job = new mutable.HashMap[Int, Int]
     if (thisRefProfile.isEmpty) {
       // read job dag from profie
       val jobProfile = refProfile_by_Job.get(jobId)
       if (jobProfile.isDefined){
         logInfo(s"yyh: read refProfile of job $jobId: $jobProfile")
-        refProfile_online = jobProfile.get
+        this_job = jobProfile.get
       }
       else {
         logInfo(s"yyh: refProfile of job $jobId not found!")
@@ -299,15 +300,21 @@ private[spark] class BlockManager(
     }
     else {
       logInfo(s"yyh: received refProfile of job $jobId: $thisRefProfile")
-      refProfile_online = thisRefProfile.get
+      this_job = thisRefProfile.get
       // logInfo(s"yyh:  before merge: $refProfile_online")
       // mergeRefProfile(thisRefProfile.get)
       // logInfo(s"yyh:  before merge: $refProfile_online")
     }
-    // Tell the memoryStore to update the ref counts of the existing blocks
 
+    // Update the refProfile-online: if the RDD ID already exists, replace it
+    // because there is no shared RDD among tenants and no parallel jobs of a single tenant
+    // if it does not exists, create a new key.
+    refProfile_online ++= this_job
+
+
+    // Tell the memoryStore to update the ref counts of the existing blocks
     // yyh !!! only update it for online job DAG !!!! comment the code in the memorystore
-    memoryStore.updateRefCountByJobDAG(refProfile_online)
+    memoryStore.updateRefCountByJobDAG(this_job)
     (memoryStore.currentRefMap, memoryStore.refMap)
   }
   /**

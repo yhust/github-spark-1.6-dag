@@ -789,7 +789,9 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     */
   private def updateFilter(blockId: BlockId, origin: Int, jobDAG: mutable.HashMap[Int, Int]) = {
     val rddId = blockId.asRDDId.toString.split("_")(1).toInt
-    jobDAG.getOrElse(rddId, 0)
+    jobDAG.getOrElse(rddId, origin)
+    // if to be updated, just replace it. No need to add, as different tenants will not share RDDs
+    // and there is no parallel jobs for any single tenant.
     // For an RDD to be used in the next job, its origin ref count might be 1.
   }
 
