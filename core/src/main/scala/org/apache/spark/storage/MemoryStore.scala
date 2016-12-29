@@ -767,7 +767,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     */
   private def updateFilter(blockId: BlockId, origin: Int, jobDAG: mutable.HashMap[Int, Int]) = {
     val rddId = blockId.asRDDId.toString.split("_")(1).toInt
-    origin + jobDAG.getOrElse(rddId, 0) // incremental
+    jobDAG.getOrElse(rddId, origin) // incremental
   }
 
 
