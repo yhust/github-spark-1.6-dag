@@ -587,7 +587,9 @@ private[spark] class BlockManager(
             case Some(values) =>
               if (blockId.isRDD){
                 logInfo(s"yyh: Cache Hit: $blockId, will deduct its referenced count by 1")
-                hitCount += 1
+                this.synchronized {
+                  hitCount += 1
+                }
                 memoryStore.deductRefCountByBlockIdHit(blockId)
               }
               return result
@@ -597,7 +599,9 @@ private[spark] class BlockManager(
               if (blockId.isRDD){
                 logInfo(s"yyh: RDD block Cache Miss: $blockId, " +
                   s"will deduct its referenced count by 1")
-                missCount += 1
+                this.synchronized {
+                  missCount += 1
+                }
                 memoryStore.deductRefCountByBlockIdMiss(blockId)
               }
           }
