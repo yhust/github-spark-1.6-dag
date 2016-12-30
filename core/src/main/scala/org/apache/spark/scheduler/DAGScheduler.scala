@@ -471,7 +471,7 @@ class DAGScheduler(
   // Expended in memory nodes
   private val expendedNodes = new HashSet[Int]
   // Keep track of the dropped one RDDs
-  private val droppedRDDs = new HashSet[Int]
+  // private val droppedRDDs = new HashSet[Int]
 
 
   private def profileRefCountStageByStage(rdd: RDD[_], jobId: Int): Unit = {
@@ -496,7 +496,7 @@ class DAGScheduler(
     // if the final RDD of this stage is in memory
     if (rdd.getStorageLevel.useMemory) {
       newInMemoryRDDs += rdd.id
-      droppedRDDs += rdd.id
+      // droppedRDDs += rdd.id
     }
     // Dont start with the same RDD twice
     if (!visitedStageRDDs.contains(rdd.id)) {
@@ -508,7 +508,11 @@ class DAGScheduler(
     def visit(rdd: RDD[_]): Unit = {
       // Expending a RDD
       if (rdd.getStorageLevel.useMemory) {
-        expendedNodes.add(rdd.id)
+        if ((!expendedNodes.contains(rdd.id))
+          && (!newInMemoryRDDs.contains(rdd.id))) {
+          expendedNodes.add(rdd.id)
+          newInMemoryRDDs += rdd.id
+        }
       }
       for (dep <- rdd.dependencies) {
         logWarning("zcl: processing dependency between rdd: " + rdd.id + " " + dep.rdd.id)
@@ -533,7 +537,7 @@ class DAGScheduler(
               waitingForVisit.push(narrowDep.rdd)
             }
             if (narrowDep.rdd.getStorageLevel.useMemory) {
-              newInMemoryRDDs += narrowDep.rdd.id
+              // newInMemoryRDDs += narrowDep.rdd.id
               if (rddIdToRefCount.contains(narrowDep.rdd.id)) {
                 val temp = rddIdToRefCount(narrowDep.rdd.id) + 1
                 rddIdToRefCount.put(narrowDep.rdd.id, temp)
@@ -562,25 +566,13 @@ class DAGScheduler(
     }
     // Drop 1 ref count of the in memory RDD with the biggest id
     if (newInMemoryRDDs.length > 0) {
-      newInMemoryRDDs = newInMemoryRDDs.sortWith(_ > _)
-      val can = newInMemoryRDDs(0)
-      logWarning("zcl: dropping: " + newInMemoryRDDs.toString() + " " + can)
-      if (rddIdToRefCount.contains(can) && (!droppedRDDs.contains(can))) {
-        logWarning("zcl: dropping a refcount for rdd: " + can)
-        droppedRDDs += can
-        if (rddIdToRefCount(can) > 1) {
-          val temp = rddIdToRefCount(can) - 1
-          rddIdToRefCount.put(can, temp)
-        } else {
-          rddIdToRefCount -= can
-        }
+      for (can <- newInMemoryRDDs) {
+        logWarning("zcl: droping new in stage RDD: " + can)
         if (refCountById.contains(can)) {
-          if (refCountById(can) > 1) {
-            val temp = refCountById(can) - 1
-            refCountById.put(can, temp)
-          } else {
-            refCountById -= can
-          }
+          refCountById -= can
+        }
+        if (rddIdToRefCount.contains(can)) {
+          rddIdToRefCount -= can
         }
       }
     }
