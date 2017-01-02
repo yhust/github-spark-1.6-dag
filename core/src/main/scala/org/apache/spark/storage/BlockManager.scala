@@ -596,14 +596,7 @@ private[spark] class BlockManager(
             case None =>
               // yyh
               // logDebug(s"Block $blockId not found in memory")
-              if (blockId.isRDD){
-                logInfo(s"yyh: RDD block Cache Miss: $blockId, " +
-                  s"will deduct its referenced count by 1")
-                this.synchronized {
-                  missCount += 1
-                }
-                memoryStore.deductRefCountByBlockIdMiss(blockId)
-              }
+
           }
         }
 
@@ -631,6 +624,17 @@ private[spark] class BlockManager(
           logDebug(s"Getting block $blockId from disk")
           val bytes: ByteBuffer = if (diskStore.contains(blockId)) {
             // DiskStore.getBytes() always returns Some, so this .get() is guaranteed to be safe
+            if (blockId.isRDD){
+              val rddId = blockId.asRDDId.toString.split("_")(1).toInt
+              if(refProfile_online.contains(rddId)){
+                logInfo(s"yyh: RDD block Cache Miss: $blockId, " +
+                  s"will deduct its referenced count by 1")
+                this.synchronized {
+                  missCount += 1
+                }
+                memoryStore.deductRefCountByBlockIdMiss(blockId)
+              }
+            }
             diskStore.getBytes(blockId).get
           } else {
             // Remove the missing block so that its unavailability is reported to the driver
@@ -649,7 +653,7 @@ private[spark] class BlockManager(
               return Some(bytes)
             }
           } else {
-            logInfo(s"yyh: On cache miss, check whether to cache it back")
+            logInfo(s"yyh: On cache miss $blockId, check whether to cache it back")
             // Otherwise, we also have to store something in the memory store
             if (!level.deserialized || !asBlockResult) {
               /* We'll store the bytes in memory if the block's storage level includes

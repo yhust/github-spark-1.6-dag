@@ -483,7 +483,8 @@ class DAGScheduler(
       profileRefCountOneStage(waitingReStages.dequeue(), jobId, refCountByJob)
     }
     logWarning("zcl: profiling" + " jobId " + jobId + "done" + " rdd: " + rdd.id)
-    blockManagerMaster.broadcastRefCount(jobId, refCountByJob)
+    val numberOfRDDPartitions = rdd.getNumPartitions
+    blockManagerMaster.broadcastRefCount(jobId, numberOfRDDPartitions, refCountByJob)
     writeRefCountToFile(jobId, refCountByJob)
   }
 

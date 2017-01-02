@@ -133,7 +133,8 @@ private[spark] object BlockManagerMessages {
   case class StartBroadcastJobId(jobId: Int) extends ToBlockManagerMaster
 
   // Initiate broadcast of refcount
-  case class StartBroadcastRefCount(jobId: Int, refCount: mutable.HashMap[Int, Int])
+  case class StartBroadcastRefCount(jobId: Int, partitionNumber: Int,
+                                    refCount: mutable.HashMap[Int, Int])
     extends ToBlockManagerMaster
 
   // yyh: report the cache hit and miss to the master on stop of the block manager on slaves

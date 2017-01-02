@@ -292,8 +292,8 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       if (refMap.contains(blockId)){
         logError(s"yyh: the to unrolled block is already in the ref map")
       }
-      else if (blockManager.refProfile.contains(rddId)) {   // appDAG
-        val ref_count = blockManager.refProfile(rddId)
+      else if (blockManager.refProfile_online.contains(rddId)) {   // jobDAG
+        val ref_count = blockManager.refProfile_online(rddId)
         refMap.synchronized { refMap(blockId) = ref_count}
         logInfo(s"yyh: (Unrolling) fetch the ref count of $blockId: $ref_count")
       }
@@ -427,8 +427,8 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
         if (refMap.contains(blockId)){
           logInfo(s"yyh: the to be cache block is already in the ref map")
         }
-        else if (blockManager.refProfile.contains(rddId)) {
-          val ref_count = blockManager.refProfile(rddId)
+        else if (blockManager.refProfile_online.contains(rddId)) {  // jobDAG
+          val ref_count = blockManager.refProfile_online(rddId)
           refMap.synchronized { refMap(blockId) = ref_count}
           logInfo(s"yyh: fetch the ref count of $blockId: $ref_count")
         }
