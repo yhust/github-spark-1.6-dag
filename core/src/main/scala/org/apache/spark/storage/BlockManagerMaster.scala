@@ -114,6 +114,8 @@ class BlockManagerMaster(
 
   /** Remove all blocks belonging to the given RDD. */
   def removeRdd(rddId: Int, blocking: Boolean) {
+    return // yyh: disable the driver to remove rdds
+    /**
     val future = driverEndpoint.askWithRetry[Future[Seq[Int]]](RemoveRdd(rddId))
     future.onFailure {
       case e: Exception =>
@@ -122,6 +124,7 @@ class BlockManagerMaster(
     if (blocking) {
       timeout.awaitResult(future)
     }
+      */
   }
 
   /** Remove all blocks belonging to the given shuffle. */
@@ -139,6 +142,9 @@ class BlockManagerMaster(
   /** Remove all blocks belonging to the given broadcast. */
   def removeBroadcast(broadcastId: Long, removeFromMaster: Boolean, blocking: Boolean) {
 
+    return  // disable the master from removing broadcasts
+
+    /**
     val future = driverEndpoint.askWithRetry[Future[Seq[Int]]](
       RemoveBroadcast(broadcastId, removeFromMaster))
     future.onFailure {
@@ -149,6 +155,7 @@ class BlockManagerMaster(
     if (blocking) {
       timeout.awaitResult(future)
     }
+      */
   }
 
   /**
@@ -277,8 +284,8 @@ class BlockManagerMaster(
   }
 
   /** Broadcast reference count */
-  def broadcastRefCount(jobId: Int, refCount: HashMap[Int, Int]): Unit = {
-    tell(StartBroadcastRefCount(jobId, refCount))
+  def broadcastRefCount(jobId: Int, partitionNumber: Int, refCount: HashMap[Int, Int]): Unit = {
+    tell(StartBroadcastRefCount(jobId, partitionNumber, refCount))
   }
 
   /** Send a one-way message to the master endpoint, to which we expect it to reply with true. */

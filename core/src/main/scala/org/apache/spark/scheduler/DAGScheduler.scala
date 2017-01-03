@@ -483,7 +483,8 @@ class DAGScheduler(
       profileRefCountOneStage(waitingReStages.dequeue(), jobId, refCountByJob)
     }
     logWarning("zcl: profiling" + " jobId " + jobId + "done" + " rdd: " + rdd.id)
-    blockManagerMaster.broadcastRefCount(jobId, refCountByJob)
+    val numberOfRDDPartitions = rdd.getNumPartitions
+    blockManagerMaster.broadcastRefCount(jobId, numberOfRDDPartitions, refCountByJob)
     writeRefCountToFile(jobId, refCountByJob)
   }
 
@@ -496,7 +497,6 @@ class DAGScheduler(
     // if the final RDD of this stage is in memory
     if (rdd.getStorageLevel.useMemory) {
       newInMemoryRDDs += rdd.id
-      // droppedRDDs += rdd.id
     }
     // Dont start with the same RDD twice
     if (!visitedStageRDDs.contains(rdd.id)) {
@@ -537,7 +537,10 @@ class DAGScheduler(
               waitingForVisit.push(narrowDep.rdd)
             }
             if (narrowDep.rdd.getStorageLevel.useMemory) {
-              // newInMemoryRDDs += narrowDep.rdd.id
+//              if ((!newInMemoryRDDs.contains(narrowDep.rdd.id))
+//                && (!expendedNodes.contains(narrowDep.rdd.id))) {
+//                newInMemoryRDDs += narrowDep.rdd.id
+//              }
               if (rddIdToRefCount.contains(narrowDep.rdd.id)) {
                 val temp = rddIdToRefCount(narrowDep.rdd.id) + 1
                 rddIdToRefCount.put(narrowDep.rdd.id, temp)
@@ -574,6 +577,7 @@ class DAGScheduler(
         if (rddIdToRefCount.contains(can)) {
           rddIdToRefCount -= can
         }
+
       }
     }
   }
