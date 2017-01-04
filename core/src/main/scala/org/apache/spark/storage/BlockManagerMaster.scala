@@ -114,8 +114,6 @@ class BlockManagerMaster(
 
   /** Remove all blocks belonging to the given RDD. */
   def removeRdd(rddId: Int, blocking: Boolean) {
-    return // yyh: disable the driver to remove rdds
-    /**
     val future = driverEndpoint.askWithRetry[Future[Seq[Int]]](RemoveRdd(rddId))
     future.onFailure {
       case e: Exception =>
@@ -124,7 +122,6 @@ class BlockManagerMaster(
     if (blocking) {
       timeout.awaitResult(future)
     }
-      */
   }
 
   /** Remove all blocks belonging to the given shuffle. */
@@ -141,10 +138,6 @@ class BlockManagerMaster(
 
   /** Remove all blocks belonging to the given broadcast. */
   def removeBroadcast(broadcastId: Long, removeFromMaster: Boolean, blocking: Boolean) {
-
-    return  // disable the master from removing broadcasts
-
-    /**
     val future = driverEndpoint.askWithRetry[Future[Seq[Int]]](
       RemoveBroadcast(broadcastId, removeFromMaster))
     future.onFailure {
@@ -155,7 +148,7 @@ class BlockManagerMaster(
     if (blocking) {
       timeout.awaitResult(future)
     }
-      */
+
   }
 
   /**
