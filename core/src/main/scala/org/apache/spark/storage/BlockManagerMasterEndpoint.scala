@@ -607,6 +607,9 @@ class BlockManagerMasterEndpoint(
     val stopTime = System.currentTimeMillis
     val duration = stopTime - startTime
     RDDHit = totalReference - RDDMiss // yyh: align total reference count
+    if (RDDHit < 0 ){
+      RDDHit = 0
+    }
     logInfo(s"yyh: log stoptime: $stopTime, duration: $duration ms")
     logInfo(s"yyh: Closing blockMangerMasterEndPoint, RDD hit $RDDHit, RDD miss $RDDMiss")
     logInfo(s" Disk read count: $diskRead, disk write count: $diskWrite")
