@@ -19,6 +19,7 @@ package org.apache.spark.storage
 
 import java.nio.ByteBuffer
 import java.util.LinkedHashMap
+import java.io.{FileWriter, File}
 
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, MutableList}
@@ -44,10 +45,10 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
 
   private val conf = blockManager.conf
   private val entries = new LinkedHashMap[BlockId, MemoryEntry](32, 0.75f, true)
-  var refMap = mutable.Map[BlockId, Int]()  // yyh no recency. remaining refCount of
+  var refMap = mutable.HashMap[BlockId, Int]()  // yyh no recency. remaining refCount of
   // all blocks in cache and disk
-  var currentRefMap = mutable.Map[BlockId, Int]() // remaining refCount of blocks in cache
-
+  var currentRefMap = mutable.HashMap[BlockId, Int]() // remaining refCount of blocks in cache
+  val stickyLog = new FileWriter(new File("stickyLog.txt"))
 
   // A mapping from taskAttemptId to amount of memory used for unrolling a block (in bytes)
   // All accesses of this map are assumed to have manually synchronized on `memoryManager`
@@ -303,9 +304,18 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
         refMap.synchronized { refMap(blockId) = ref_count}
         logInfo(s"yyh: (Unrolling) fetch the ref count of $blockId: $ref_count")
       }
-      else {
-        refMap.synchronized {refMap.put(blockId, 1)}
-        logError(s"yyh: the unrolled block $blockId is not in the ref profile")
+      else if (blockManager.peerLostBlocks.contains(blockId)) {
+        refMap.synchronized {
+          refMap.put(blockId, 0)
+        }
+        logInfo(s"yyh: the unrolled block $blockId is not in the ref profile, and its peer is lost")
+      }
+      else
+      {
+        refMap.synchronized {
+          refMap.put(blockId, 1)
+        }
+        logInfo(s"yyh: the unrolled block $blockId is not in the ref profile")
       }
     }
 
@@ -438,8 +448,17 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
           refMap.synchronized { refMap(blockId) = ref_count}
           logInfo(s"yyh: fetch the ref count of $blockId: $ref_count")
         }
-        else {
-          refMap.synchronized {refMap.put(blockId, 1)}
+        else if (blockManager.peerLostBlocks.contains(blockId)) {
+          refMap.synchronized {
+            refMap.put(blockId, 0)
+          }
+          logInfo(s"yyh: block $blockId is not in the ref profile, and its peer is lost")
+        }
+        else
+        {
+          refMap.synchronized {
+            refMap.put(blockId, 1)
+          }
           logInfo(s"yyh: block $blockId is not in the ref profile")
         }
       }
@@ -727,10 +746,12 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     */
   def checkPeersConservatively(blockId: BlockId): Unit = refMap.synchronized {
     refMap.synchronized {
+      // the refcount of itself should be zero. Here we do not consider re-admission
       if (refMap.contains(blockId)) {
         refMap(blockId) -= 1
+        stickyLog.write(s"Conservative: Refcount of $blockId is decreased by 1\n")
         logInfo(s"yyh: ref count of $blockId is deducted to ${refMap(blockId)}" +
-          s"because of conservative all-or-nothing")
+          s" because of conservative all-or-nothing")
         // This block must have been generated somewhere,
         // so no need to record it in the peerLostBlocks
       }
@@ -750,12 +771,14 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       refMap.synchronized {
         if (refMap.contains(peerBlockId)) {
           refMap(peerBlockId) -= 1
+          stickyLog.write(s"Conservative: Refcount of $peerBlockId is decreased by 1\n")
           logInfo(s"yyh: ref count of $peerBlockId is deducted to ${refMap(peerBlockId)} " +
             s"because of conservative all-or-nothing")
 
         }
         else {
           blockManager.peerLostBlocks += peerBlockId
+          stickyLog.write(s"Conservative: $peerBlockId is added to peerLostBlocks\n")
           // The peer block is not in the worker, record it in case it is cached in the future
           logInfo(s"yyh: $peerBlockId is added to the peerLostBlocks: ")
         }
@@ -777,13 +800,9 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     */
   def checkPeersStrictly(blockId: BlockId): Unit = refMap.synchronized {
     val rddId = blockId.asRDDId.toString.split("_")(1).toInt
-    if (!blockManager.decreaseRDDList.contains(rddId)) {
-      blockManager.decreaseRDDList += rddId
-      decreaseRDDRefCount(rddId)
-    }
+    decreaseRDDRefCount(rddId)
     val peerRDDId = blockManager.peers.get(rddId)
-    if (peerRDDId.isDefined && (!blockManager.decreaseRDDList.contains(peerRDDId.get))) {
-      blockManager.decreaseRDDList += peerRDDId.get
+    if (peerRDDId.isDefined) {
       decreaseRDDRefCount(peerRDDId.get)
     }
   }
@@ -791,17 +810,20 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
   def decreaseRDDRefCount(rddId: Int): Unit = {
     if (blockManager.refProfile.contains(rddId)){
       blockManager.refProfile(rddId) -= 1
+      stickyLog.write(s"Strict: Refcount of RDD $rddId is decreased by 1 in refProfile\n")
       logInfo(s"yyh: the ref count of $rddId in blockManager's refProfile is deducted " +
         s"to ${blockManager.refProfile(rddId)} due to strict all-or-nothing")
     }
     if (blockManager.refProfile_online.contains(rddId)){
       blockManager.refProfile_online(rddId) -= 1
+      stickyLog.write(s"Strict: Refcount of RDD $rddId is decreased by 1 in refProfile_online\n")
       logInfo(s"yyh: the ref count of $rddId in blockManager's refProfile_online is deducted " +
-        s"to ${blockManager.refProfile_online(rddId)} due to strict all-or-nothing")
+        s"to ${blockManager.refProfile(rddId)} due to strict all-or-nothing")
     }
     refMap.synchronized {
       refMap.foreach{ case (key: BlockId, value: Int) =>
         if (key.asRDDId.toString.split("_")(1).toInt == rddId) {
+          stickyLog.write(s"Strict: Refcount of $key is decreased by 1\n")
           logInfo(s"yyh: ref count of $key id is deducted to ${value-1}" +
             s"because of strict all-or-nothing")
           (key, value-1)
@@ -818,7 +840,6 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       }
     }
   }
-
   /**
   filter blocks by rddId. If the rddId is in the jobDAG profile, update the block ref count.
     */

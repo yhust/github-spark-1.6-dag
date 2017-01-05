@@ -18,6 +18,7 @@
 package org.apache.spark.storage
 
 import java.io.{Externalizable, ObjectInput, ObjectOutput}
+
 import scala.collection.immutable.List
 import scala.collection.mutable
 import org.apache.spark.rpc.RpcEndpointRef
@@ -43,13 +44,17 @@ private[spark] object BlockManagerMessages {
   case class RemoveBroadcast(broadcastId: Long, removeFromDriver: Boolean = true)
     extends ToBlockManagerSlave
 
-  // Broadcast JobDAG to slave. yyh
-  case class BroadcastJobDAG(jobId: Int) extends ToBlockManagerSlave
+  // Broadcast JobDAG to slaves. yyh
+  case class BroadcastJobDAG(jobId: Int, jobDAG: Option[mutable.HashMap[Int, Int]])
+    extends ToBlockManagerSlave
 
   // yyh: on evict a block, update the ref count of its peers
   case class CheckPeersStrictly(blockId: BlockId) extends ToBlockManagerSlave
 
   case class CheckPeersConservatively(blockId: BlockId) extends ToBlockManagerSlave
+
+  // Broadcast refcount to slaves
+  // case class BroadcastRefCount(refCount: mutable.HashMap[Int, Int]) extends ToBlockManagerSlave
 
   /**
    * Driver -> Executor message to trigger a thread dump.
@@ -126,6 +131,11 @@ private[spark] object BlockManagerMessages {
 
   // Initiate broadcast of jobid
   case class StartBroadcastJobId(jobId: Int) extends ToBlockManagerMaster
+
+  // Initiate broadcast of refcount
+  case class StartBroadcastRefCount(jobId: Int, partitionNumber: Int,
+                                    refCount: mutable.HashMap[Int, Int])
+    extends ToBlockManagerMaster
 
   // yyh: report the cache hit and miss to the master on stop of the block manager on slaves
   case class ReportCacheHit(blockManagerId: BlockManagerId, list: List[Int])

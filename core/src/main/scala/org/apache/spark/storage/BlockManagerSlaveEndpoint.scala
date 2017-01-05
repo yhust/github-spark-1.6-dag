@@ -74,9 +74,9 @@ class BlockManagerSlaveEndpoint(
     case TriggerThreadDump =>
       context.reply(Utils.getThreadDump())
 
-    case BroadcastJobDAG(jobId) => // yyh
+    case BroadcastJobDAG(jobId, jobDAG) => // yyh
       // In the future, profile the JobDAG
-      val (currentRefMap, refMap) = blockManager.updateRefProfile(jobId, None)
+      val (currentRefMap, refMap) = blockManager.updateRefProfile(jobId, jobDAG)
       // return the updated ref map
       context.reply((currentRefMap, refMap))
 
@@ -85,6 +85,10 @@ class BlockManagerSlaveEndpoint(
 
     case CheckPeersStrictly(blockId) => // yyh for all-or-nothing
       blockManager.memoryStore.checkPeersStrictly(blockId)
+
+   // case BroadcastRefCount(refCount) =>
+      // TODO: processing refcount
+     // context.reply(true)
   }
 
   private def doAsync[T](actionMessage: String, context: RpcCallContext)(body: => T) {
