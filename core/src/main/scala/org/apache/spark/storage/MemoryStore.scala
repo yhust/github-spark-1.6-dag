@@ -698,7 +698,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
         refMap(blockId) -= 1
         stickyLog.write(s"Conservative: Refcount of $blockId is decreased by 1\n")
         logInfo(s"yyh: ref count of $blockId is deducted to ${refMap(blockId)}" +
-          s"because of conservative all-or-nothing")
+          s" because of conservative all-or-nothing")
         // This block must have been generated somewhere,
         // so no need to record it in the peerLostBlocks
       }
@@ -710,7 +710,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     }
 
     val rddId = blockId.asRDDId.toString.split("_")(1).toInt // rdd_1_1
-    val index = blockId.asRDDId.toString.split("_")(2).toInt
+    val index = blockId.asRDDId.toString.split("_")(2).stripSuffix(")").toInt
     if (blockManager.peers.contains(rddId))
     {
       val peerRDDId = blockManager.peers.get(rddId).get

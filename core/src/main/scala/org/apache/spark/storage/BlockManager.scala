@@ -223,7 +223,7 @@ private[spark] class BlockManager(
     for ((k, v) <- refProfile) printf("key: %s, value: %s\n", k, v)
     printf("Peers:\n")
     for ((k, v) <- peers) printf("key: %s, value: %s\n", k, v)
-    for ((k, v) <- peers) memoryStore.stickyLog.write("key: %s, value: %s\n", k, v)
+    // for ((k, v) <- peers) memoryStore.stickyLog.write("key: $k, value: $v\n")
     logInfo(s"yyh: block manager $blockManagerId has read the refProfile")
     // for ((k, v) <- refProfile) printf("key: %s, value: %s\n", k, v)
 
@@ -1464,6 +1464,7 @@ private[spark] class BlockManager(
     logInfo(s"yyh: BlockManager on executor $executorId is stopped here, " +
       "report to the master-actor hit and miss count")
     reportCacheHit()
+    memoryStore.stickyLog.close()
     blockTransferService.close()
     if (shuffleClient ne blockTransferService) {
       // Closing should be idempotent, but maybe not for the NioBlockTransferService.
