@@ -219,7 +219,11 @@ private[spark] class BlockManager(
     refProfile = mutable.HashMap(appDAG.toSeq: _*)
     refProfile_by_Job = mutable.HashMap(jobDAG.toSeq: _*)
     peers = mutable.HashMap(peerProfile.toSeq: _*)
-
+    printf("RefProfile:\n")
+    for ((k, v) <- refProfile) printf("key: %s, value: %s\n", k, v)
+    printf("Peers:\n")
+    for ((k, v) <- peers) printf("key: %s, value: %s\n", k, v)
+    for ((k, v) <- peers) memoryStore.stickyLog.write("key: %s, value: %s\n", k, v)
     logInfo(s"yyh: block manager $blockManagerId has read the refProfile")
     // for ((k, v) <- refProfile) printf("key: %s, value: %s\n", k, v)
 
@@ -260,11 +264,13 @@ private[spark] class BlockManager(
     */
 
   def checkPeerLoss(blockId: BlockId): Unit = {
+    memoryStore.stickyLog.write(s"On eviction of $blockId, check peer loss\n")
     if (memoryStore.refMap.getOrElse(blockId, 0) > 0 // this block has remaining ref count
       && peers.contains(blockId.asRDDId.toString.split("_")(1).toInt)) {
       // if this block still has remaining ref count, it means its peer has not been evicted
-      logInfo(s"yyh: $blockId is either rejected or evicted from cache" +
+      logInfo(s"yyh: $blockId is going to be written into the disk" +
         s" with nonzero ref count, notify the master of its loss")
+      memoryStore.stickyLog.write(s"Report the loss of $blockId\n")
       master.driverEndpoint.askWithRetry[Boolean](BlockWithPeerEvicted(blockId))
     }
 
@@ -314,7 +320,7 @@ private[spark] class BlockManager(
 
     // Tell the memoryStore to update the ref counts of the existing blocks
     // yyh !!! only update it for online job DAG !!!! comment the code in the memorystore
-    memoryStore.updateRefCountByJobDAG(this_job)
+    // memoryStore.updateRefCountByJobDAG(this_job)
     (memoryStore.currentRefMap, memoryStore.refMap)
   }
   /**

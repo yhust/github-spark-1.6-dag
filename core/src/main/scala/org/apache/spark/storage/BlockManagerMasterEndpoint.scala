@@ -557,7 +557,7 @@ class BlockManagerMasterEndpoint(
       notifyPeersConservatively(blockId)
 
       // For strict all-or-nothing, decrease the ref count of all the blocks of both rdds
-      notifyPeersStrictly(blockId)
+      // notifyPeersStrictly(blockId)
 
 
     }
