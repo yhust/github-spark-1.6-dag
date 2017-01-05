@@ -277,8 +277,9 @@ class BlockManagerMaster(
   }
 
   /** Broadcast reference count */
-  def broadcastRefCount(jobId: Int, refCount: HashMap[Int, Int]): Unit = {
-    tell(StartBroadcastRefCount(jobId, refCount))
+  def broadcastRefCount(jobId: Int, numberOfRDDPartitions: Int,
+                        refCount: HashMap[Int, Int]): Unit = {
+    tell(StartBroadcastRefCount(jobId, numberOfRDDPartitions, refCount))
   }
 
   /** Send a one-way message to the master endpoint, to which we expect it to reply with true. */

@@ -19,6 +19,7 @@ package org.apache.spark.storage
 
 import java.nio.ByteBuffer
 import java.util.LinkedHashMap
+import java.io.{FileWriter, File}
 
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, MutableList}
@@ -47,6 +48,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
   var refMap = mutable.HashMap[BlockId, Int]()  // yyh no recency. remaining refCount of
   // all blocks in cache and disk
   var currentRefMap = mutable.HashMap[BlockId, Int]() // remaining refCount of blocks in cache
+  val stickyLog = new FileWriter(new File("stickyLog.txt"))
 
   // A mapping from taskAttemptId to amount of memory used for unrolling a block (in bytes)
   // All accesses of this map are assumed to have manually synchronized on `memoryManager`
