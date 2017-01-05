@@ -21,6 +21,7 @@ import scala.collection.Iterable
 import scala.collection.generic.CanBuildFrom
 import scala.concurrent.{Await, Future}
 import scala.collection.mutable // yyh
+import scala.collection.mutable.HashMap
 import scala.collection.immutable.List
 
 import org.apache.spark.rpc.RpcEndpointRef
@@ -113,8 +114,6 @@ class BlockManagerMaster(
 
   /** Remove all blocks belonging to the given RDD. */
   def removeRdd(rddId: Int, blocking: Boolean) {
-    return // yyh: disable the driver to remove rdds
-    /**
     val future = driverEndpoint.askWithRetry[Future[Seq[Int]]](RemoveRdd(rddId))
     future.onFailure {
       case e: Exception =>
@@ -123,7 +122,6 @@ class BlockManagerMaster(
     if (blocking) {
       timeout.awaitResult(future)
     }
-      */
   }
 
   /** Remove all blocks belonging to the given shuffle. */
@@ -141,7 +139,6 @@ class BlockManagerMaster(
   /** Remove all blocks belonging to the given broadcast. */
   def removeBroadcast(broadcastId: Long, removeFromMaster: Boolean, blocking: Boolean) {
 
-    // return  // disable the master from removing broadcasts
     val future = driverEndpoint.askWithRetry[Future[Seq[Int]]](
       RemoveBroadcast(broadcastId, removeFromMaster))
     future.onFailure {
@@ -238,11 +235,12 @@ class BlockManagerMaster(
     * yyh, get the refProfile from the driver, including appDAG, jobDAGs and peer information
     */
   def getRefProfile(blockManagerId: BlockManagerId, slaveEndPoint: RpcEndpointRef):
-  (mutable.Map[Int, Int], mutable.Map[Int, mutable.Map[Int, Int]],
-    mutable.Map[Int, Int]) = {
+  (mutable.HashMap[Int, Int], mutable.HashMap[Int, mutable.HashMap[Int, Int]],
+    mutable.HashMap[Int, Int]) = {
     logInfo(s"yyh: $blockManagerId try to get refprofile from the master endpoint")
-    driverEndpoint.askWithRetry[(mutable.Map[Int, Int], mutable.Map[Int, mutable.Map[Int, Int]],
-      mutable.Map[Int, Int])](GetRefProfile(blockManagerId, slaveEndPoint))
+    driverEndpoint.askWithRetry[(mutable.HashMap[Int, Int], mutable.HashMap[Int,
+      mutable.HashMap[Int, Int]], mutable.HashMap[Int, Int])](GetRefProfile
+      (blockManagerId, slaveEndPoint))
   }
 
   /**
@@ -276,6 +274,12 @@ class BlockManagerMaster(
   /** Broadcast the JobId */
   def broadcastJobId(jobId: Int): Unit = {
     tell(StartBroadcastJobId(jobId))
+  }
+
+  /** Broadcast reference count */
+  def broadcastRefCount(jobId: Int, numberOfRDDPartitions: Int,
+                        refCount: HashMap[Int, Int]): Unit = {
+    tell(StartBroadcastRefCount(jobId, numberOfRDDPartitions, refCount))
   }
 
   /** Send a one-way message to the master endpoint, to which we expect it to reply with true. */
