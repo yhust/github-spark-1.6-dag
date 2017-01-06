@@ -300,15 +300,17 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
         logError(s"yyh: the to unrolled block is already in the ref map")
       }
       else if (blockManager.refProfile.contains(rddId)) {   // appDAG
-        val ref_count = blockManager.refProfile(rddId)// appDAG
-        refMap.synchronized { refMap(blockId) = ref_count}
-        logInfo(s"yyh: (Unrolling) fetch the ref count of $blockId: $ref_count")
-      }
-      else if (blockManager.peerLostBlocks.contains(blockId)) {
-        refMap.synchronized {
-          refMap.put(blockId, 0)
+        if (blockManager.peerLostBlocks.contains(blockId)) {
+          refMap.synchronized {
+            refMap.put(blockId, 0)
+          }
+          logInfo(s"yyh: the unrolled block $blockId is in the ref profile, but its peer is lost")
         }
-        logInfo(s"yyh: the unrolled block $blockId is not in the ref profile, and its peer is lost")
+        else {
+          val ref_count = blockManager.refProfile(rddId)// appDAG
+          refMap.synchronized { refMap(blockId) = ref_count}
+          logInfo(s"yyh: (Unrolling) fetch the ref count of $blockId: $ref_count")
+        }
       }
       else
       {
@@ -772,7 +774,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
 
         }
         else {
-          blockManager.peerLostBlocks += peerBlockId
+          blockManager.peerLostBlocks.synchronized {blockManager.peerLostBlocks += peerBlockId}
           stickyLog.write(s"Conservative: $peerBlockId is added to peerLostBlocks\n")
           // The peer block is not in the worker, record it in case it is cached in the future
           logInfo(s"yyh: $peerBlockId is added to the peerLostBlocks: ")
