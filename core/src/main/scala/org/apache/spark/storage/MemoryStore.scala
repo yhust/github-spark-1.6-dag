@@ -446,23 +446,24 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
           logInfo(s"yyh: the to be cache block is already in the ref map")
         }
         else if (blockManager.refProfile.contains(rddId)) {// appDAG
-          val ref_count = blockManager.refProfile(rddId)// appDAG
-          refMap.synchronized { refMap(blockId) = ref_count}
-          logInfo(s"yyh: fetch the ref count of $blockId: $ref_count")
-        }
-        else if (blockManager.peerLostBlocks.contains(blockId)) {
-          refMap.synchronized {
-            refMap.put(blockId, 0)
+          if (blockManager.peerLostBlocks.contains(blockId)) {
+            refMap.synchronized {
+              refMap.put(blockId, 0)
+            }
+            logInfo(s"yyh: $blockId is in the ref profile, but its peer is lost")
           }
-          logInfo(s"yyh: the unrolled block $blockId is not in the ref profile," +
-            s" and its peer is lost")
+          else {
+            val ref_count = blockManager.refProfile(rddId)// appDAG
+            refMap.synchronized { refMap(blockId) = ref_count}
+            logInfo(s"yyh: fetch the ref count of $blockId: $ref_count")
+          }
         }
         else
         {
           refMap.synchronized {
             refMap.put(blockId, 1)
           }
-          logInfo(s"yyh: the unrolled block $blockId is not in the ref profile")
+          logInfo(s"yyh: $blockId is not in the ref profile")
         }
       }
       if (enoughMemory) {
