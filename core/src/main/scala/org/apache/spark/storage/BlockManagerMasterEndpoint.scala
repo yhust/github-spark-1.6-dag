@@ -512,12 +512,12 @@ class BlockManagerMasterEndpoint(
   }
 
   /**
-  private def broadcastRefCount(refCount: mutable.HashMap[Int, Int]): Unit = {
-    for (bm <- blockManagerInfo.values) {
-      bm.slaveEndpoint.askWithRetry(BroadcastRefCount(refCount))
-      logInfo(s"zcl: broadcasted refcount to $bm")
-    }
-  }
+    * private def broadcastRefCount(refCount: mutable.HashMap[Int, Int]): Unit = {
+    * for (bm <- blockManagerInfo.values) {
+    * bm.slaveEndpoint.askWithRetry(BroadcastRefCount(refCount))
+    * logInfo(s"zcl: broadcasted refcount to $bm")
+    * }
+    * }
   */
 
   private def updateCacheHit(blockManagerId: BlockManagerId, list: List[Int],
@@ -573,17 +573,17 @@ class BlockManagerMasterEndpoint(
     }
 
     /**
-    val locations = blockLocations.get(blockId)
-    if (locations != null) {
-      locations.foreach { blockManagerId: BlockManagerId =>
-        val blockManager = blockManagerInfo.get(blockManagerId)
-        if (blockManager.isDefined) {
-          // yyh: tell the blockManager to decrease the ref count of the given block
-          logInfo(s"yyh: Telling $blockManager to decrease the ref count of $blockId")
-          blockManager.get.slaveEndpoint.ask[Boolean](DecreaseBlockRefCount(blockId))
-        }
-      }
-    }
+      * val locations = blockLocations.get(blockId)
+      * if (locations != null) {
+      * locations.foreach { blockManagerId: BlockManagerId =>
+      * val blockManager = blockManagerInfo.get(blockManagerId)
+      * if (blockManager.isDefined) {
+      * // yyh: tell the blockManager to decrease the ref count of the given block
+      * logInfo(s"yyh: Telling $blockManager to decrease the ref count of $blockId")
+      * blockManager.get.slaveEndpoint.ask[Boolean](DecreaseBlockRefCount(blockId))
+      * }
+      * }
+      * }
       */
   }
   private def notifyPeersStrictly(blockId: BlockId): Unit = {
@@ -593,19 +593,19 @@ class BlockManagerMasterEndpoint(
 
     /** TRY TO FIND THE LOCATION OF EACH BLOCK.
       * But we are not sure whether all the block status are reported to the master
-    val blocks = blockLocations.asScala.keys.flatMap(_.asRDDId).filter(_.rddId == rddId)
-    blocks.foreach { blockId =>
-      val bms: mutable.HashSet[BlockManagerId] = blockLocations.get(blockId)
-      bms.foreach{
-        bm =>
-          {
-            blockManagerInfo.get(bm)
-              .get.slaveEndpoint.ask[Boolean](DecreaseBlockRefCount(blockId))
-            logInfo(s"yyh: Telling $bm to decrease the ref count of $blockId")
-          }
-      }
-
-    }
+      * val blocks = blockLocations.asScala.keys.flatMap(_.asRDDId).filter(_.rddId == rddId)
+      * blocks.foreach { blockId =>
+      * val bms: mutable.HashSet[BlockManagerId] = blockLocations.get(blockId)
+      * bms.foreach{
+      * bm =>
+      * {
+      * blockManagerInfo.get(bm)
+      * .get.slaveEndpoint.ask[Boolean](DecreaseBlockRefCount(blockId))
+      * logInfo(s"yyh: Telling $bm to decrease the ref count of $blockId")
+      * }
+      * }
+      **
+      *}
       */
   }
 
@@ -613,18 +613,22 @@ class BlockManagerMasterEndpoint(
     val missCount = mutable.HashMap[Int, Int]() // effective miss blocks of each rdd
     for( blockId <- totalMissBlockList) {
       val rddId = blockId.asRDDId.map(_.rddId).get
+      val index = blockId.asRDDId.toString.split("_")(2).stripSuffix(")").toInt
       val peerRDDId = peerProfile(rddId)
+      val peerBlockId = new RDDBlockId(peerRDDId, index)
       if (missCount.contains(rddId)) {
         missCount(rddId) += 1
       }
       else {
         missCount(rddId) = 1
       }
-      if (missCount.contains(peerRDDId)) {
-        missCount(peerRDDId) += 1
-      }
-      else {
-        missCount(peerRDDId) = 1
+      if (!missBlockList.contains(peerBlockId)) {   // to avoid duplicated count
+        if (missCount.contains(peerRDDId)) {
+          missCount(peerRDDId) += 1
+        }
+        else {
+          missCount(peerRDDId) = 1
+        }
       }
     }
     var taskHit = 0

@@ -229,7 +229,7 @@ class BlockManagerMaster(
     */
   def reportCacheHit(blockManagerId: BlockManagerId, list: List[Int],
                      missBlockList: mutable.MutableList[BlockId]): Boolean = {
-    driverEndpoint.askWithRetry[Boolean](ReportCacheHit(blockManagerId, list))
+    driverEndpoint.askWithRetry[Boolean](ReportCacheHit(blockManagerId, list, missBlockList))
   }
 
   /**

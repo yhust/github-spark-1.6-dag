@@ -1,0 +1,665 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGBUS (0xa) at pc=0x000000010d9880b7, pid=17720, tid=13671
+#
+# JRE version: Java(TM) SE Runtime Environment (7.0_79-b15) (build 1.7.0_79-b15)
+# Java VM: Java HotSpot(TM) 64-Bit Server VM (24.79-b02 mixed mode bsd-amd64 compressed oops)
+# Problematic frame:
+# C  [libzip.dylib+0x30b7]  newEntry+0x154
+#
+# Failed to write core dump. Core dumps have been disabled. To enable core dumping, try "ulimit -c unlimited" before starting Java again
+#
+# If you would like to submit a bug report, please visit:
+#   http://bugreport.java.com/bugreport/crash.jsp
+# The crash happened outside the Java Virtual Machine in native code.
+# See problematic frame for where to report the bug.
+#
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x00007fa5968dd800):  JavaThread "NGSession 65: 127.0.0.1: zinc" [_thread_in_native, id=13671, stack(0x0000700000fc7000,0x00007000010c7000)]
+
+siginfo:si_signo=SIGBUS: si_errno=0, si_code=2 (BUS_ADRERR), si_addr=0x0000000138a719c8
+
+Registers:
+RAX=0x00007fa595b9a560, RBX=0x0000000138a719bc, RCX=0x0000000000000500, RDX=0x0000000000000000
+RSP=0x00007000010c2930, RBP=0x00007000010c2990, RSI=0x00007fa595c00000, RDI=0x000000010d6dca00
+R8 =0x0000000000000004, R9 =0x0000000080000000, R10=0x000000010ed0f5d8, R11=0x00006ff81b3c45a6
+R12=0x00000000000000c0, R13=0x00007fa594c5ee00, R14=0x00007fa595b9a560, R15=0x00007fa595c6d070
+RIP=0x000000010d9880b7, EFLAGS=0x0000000000010202, ERR=0x0000000000000004
+  TRAPNO=0x000000000000000e
+
+Top of Stack: (sp=0x00007000010c2930)
+0x00007000010c2930:   00000007862f4a68 0000000078fd1690
+0x00007000010c2940:   000000000013087c 00000001fcb89b70
+0x00007000010c2950:   00007000010c2970 00007fa595b9a560
+0x00007000010c2960:   00007fa595c575a0 00000000b846c683
+0x00007000010c2970:   00000000000000c0 00007fa594c5ee00
+0x00007000010c2980:   00007fa595b9a560 00007fa595c6d070
+0x00007000010c2990:   00007000010c29e0 000000010d988725
+0x00007000010c29a0:   0000000000000033 00000000968dd800
+0x00007000010c29b0:   00007000010c29fe 00007000010c2e48
+0x00007000010c29c0:   0000000000000033 00007000010c29fe
+0x00007000010c29d0:   00007fa595b9a560 00007fa5968dd9e8
+0x00007000010c29e0:   00007000010c2e30 000000010d987570
+0x00007000010c29f0:   0000000781a4afe0 726f000100000000
+0x00007000010c2a00:   6568636170612f67 6e2f6b726170732f
+0x00007000010c2a10:   622f6b726f777465 614d2f7265666675
+0x00007000010c2a20:   667542646567616e 73616c632e726566
+0x00007000010c2a30:   00000007869e0073 000000010f18f7e4
+0x00007000010c2a40:   00000007e5cfa980 0000000781a4afe0
+0x00007000010c2a50:   00000007801b0e18 00000001f0d3c19c
+0x00007000010c2a60:   00000007e5cfa920 0000000000000000
+0x00007000010c2a70:   0000000781a4afa0 00000001fcb918e4
+0x00007000010c2a80:   00000007e5cfa678 000000010ee97abc
+0x00007000010c2a90:   00000007e5cfaa10 000000010fd6665c
+0x00007000010c2aa0:   0000000781a4afa0 000000010fc9a18c
+0x00007000010c2ab0:   0000000781a4afe0 00000007e5cfa980
+0x00007000010c2ac0:   0000000781a4afa0 0000000781a4afe0
+0x00007000010c2ad0:   00000007e5cfa678 00000007e5cfa678
+0x00007000010c2ae0:   00000007869e0ce0 000000010f18f7e4
+0x00007000010c2af0:   00000007862f4a68 000524c06a97b844
+0x00007000010c2b00:   0000000000149300 00000001f0d3c19c
+0x00007000010c2b10:   00000007e5cfaa10 00000007869e0ce0
+0x00007000010c2b20:   0000000781a4afa0 00000007f03495c9 
+
+Instructions: (pc=0x000000010d9880b7)
+0x000000010d988097:   49 8b 7f 38 e8 9c 1a 00 00 4d 89 77 38 49 89 5f
+0x000000010d9880a7:   40 4c 89 f0 48 85 c0 0f 84 16 05 00 00 48 89 c3
+0x000000010d9880b7:   0f b6 43 0c 0f b6 4b 0d 48 c1 e1 08 48 01 c1 0f
+0x000000010d9880c7:   b6 43 0e 0f b6 53 0f 48 c1 e2 08 48 01 c2 48 c1 
+
+Register to memory mapping:
+
+RAX=0x00007fa595b9a560 is an unknown value
+RBX=0x0000000138a719bc is an unknown value
+RCX=0x0000000000000500 is an unknown value
+RDX=0x0000000000000000 is an unknown value
+RSP=0x00007000010c2930 is pointing into the stack for thread: 0x00007fa5968dd800
+RBP=0x00007000010c2990 is pointing into the stack for thread: 0x00007fa5968dd800
+RSI=0x00007fa595c00000 is an unknown value
+RDI=0x000000010d6dca00 is an unknown value
+R8 =0x0000000000000004 is an unknown value
+R9 =0x0000000080000000 is an unknown value
+R10=0x000000010ed0f5d8 is at entry_point+88 in (nmethod*)0x000000010ed0f410
+R11=0x00006ff81b3c45a6 is an unknown value
+R12=0x00000000000000c0 is an unknown value
+R13=0x00007fa594c5ee00 is an unknown value
+R14=0x00007fa595b9a560 is an unknown value
+R15=0x00007fa595c6d070 is an unknown value
+
+
+Stack: [0x0000700000fc7000,0x00007000010c7000],  sp=0x00007000010c2930,  free space=1006k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+C  [libzip.dylib+0x30b7]  newEntry+0x154
+C  [libzip.dylib+0x3725]  ZIP_GetEntry+0xa2
+C  [libzip.dylib+0x2570]  Java_java_util_zip_ZipFile_getEntry+0xdd
+J 149  java.util.zip.ZipFile.getEntry(J[BZ)J (0 bytes) @ 0x000000010ed0f64e [0x000000010ed0f580+0xce]
+
+Java frames: (J=compiled Java code, j=interpreted, Vv=VM code)
+J 149  java.util.zip.ZipFile.getEntry(J[BZ)J (0 bytes) @ 0x000000010ed0f5d8 [0x000000010ed0f580+0x58]
+J 11709 C2 scala.reflect.io.AbstractFile.toByteArray()[B (88 bytes) @ 0x000000010f9e3df0 [0x000000010f9e3ce0+0x110]
+j  scala.tools.nsc.symtab.classfile.AbstractFileReader.<init>(Lscala/reflect/io/AbstractFile;)V+11
+j  scala.tools.nsc.symtab.classfile.ClassfileParser.parse(Lscala/reflect/io/AbstractFile;Lscala/reflect/internal/Symbols$Symbol;)V+319
+j  scala.tools.nsc.symtab.SymbolLoaders$ClassfileLoader.doComplete(Lscala/reflect/internal/Symbols$Symbol;)V+52
+j  scala.tools.nsc.symtab.SymbolLoaders$SymbolLoader.complete(Lscala/reflect/internal/Symbols$Symbol;)V+22
+j  scala.tools.nsc.symtab.SymbolLoaders$SymbolLoader.load(Lscala/reflect/internal/Symbols$Symbol;)V+2
+J 12345 C2 scala.reflect.internal.Symbols$Symbol.typeParams()Lscala/collection/immutable/List; (165 bytes) @ 0x0000000110112e44 [0x0000000110112b00+0x344]
+J 6635 C2 scala.reflect.internal.Types$NoArgsTypeRef.isHigherKinded()Z (8 bytes) @ 0x000000010fb26654 [0x000000010fb265c0+0x94]
+J 11563 C2 scala.reflect.internal.transform.UnCurry$$anon$2.apply(Lscala/reflect/internal/Types$Type;)Lscala/reflect/internal/Types$Type; (836 bytes) @ 0x000000010f8f40fc [0x000000010f8f3c80+0x47c]
+J 12926 C2 scala.reflect.internal.Types$TypeMap.mapOver(Lscala/reflect/internal/Types$Type;)Lscala/reflect/internal/Types$Type; (1206 bytes) @ 0x00000001103a08f4 [0x00000001103a0620+0x2d4]
+J 11563 C2 scala.reflect.internal.transform.UnCurry$$anon$2.apply(Lscala/reflect/internal/Types$Type;)Lscala/reflect/internal/Types$Type; (836 bytes) @ 0x000000010f8f49ec [0x000000010f8f3c80+0xd6c]
+J 8389 C2 scala.tools.nsc.transform.UnCurry.transformInfo(Lscala/reflect/internal/Symbols$Symbol;Lscala/reflect/internal/Types$Type;)Lscala/reflect/internal/Types$Type; (7 bytes) @ 0x000000010f798ec0 [0x000000010f798c80+0x240]
+J 12105 C2 scala.reflect.internal.Symbols$Symbol.rawInfo()Lscala/reflect/internal/Types$Type; (334 bytes) @ 0x0000000110318680 [0x0000000110318160+0x520]
+J 13297 C2 scala.reflect.internal.Symbols$Symbol.info()Lscala/reflect/internal/Types$Type; (334 bytes) @ 0x00000001107a8344 [0x00000001107a82e0+0x64]
+J 11688 C2 scala.tools.nsc.transform.SpecializeTypes$$anonfun$22$$anonfun$apply$20.apply(Ljava/lang/Object;)Ljava/lang/Object; (9 bytes) @ 0x000000010f6b70cc [0x000000010f6b6f40+0x18c]
+J 2412 C2 scala.collection.TraversableLike$class.flatMap(Lscala/collection/TraversableLike;Lscala/Function1;Lscala/collection/generic/CanBuildFrom;)Ljava/lang/Object; (29 bytes) @ 0x000000010f1ec910 [0x000000010f1ec7e0+0x130]
+J 11685 C2 scala.tools.nsc.transform.SpecializeTypes$$anonfun$22.apply(Ljava/lang/Object;)Ljava/lang/Object; (9 bytes) @ 0x000000010fc01fa0 [0x000000010fc01d20+0x280]
+J 2412 C2 scala.collection.TraversableLike$class.flatMap(Lscala/collection/TraversableLike;Lscala/Function1;Lscala/collection/generic/CanBuildFrom;)Ljava/lang/Object; (29 bytes) @ 0x000000010f1ec910 [0x000000010f1ec7e0+0x130]
+J 8552 C2 scala.tools.nsc.transform.SpecializeTypes.transformInfo(Lscala/reflect/internal/Symbols$Symbol;Lscala/reflect/internal/Types$Type;)Lscala/reflect/internal/Types$Type; (378 bytes) @ 0x000000010f6ff788 [0x000000010f6ff380+0x408]
+J 12105 C2 scala.reflect.internal.Symbols$Symbol.rawInfo()Lscala/reflect/internal/Types$Type; (334 bytes) @ 0x0000000110318680 [0x0000000110318160+0x520]
+J 13297 C2 scala.reflect.internal.Symbols$Symbol.info()Lscala/reflect/internal/Types$Type; (334 bytes) @ 0x00000001107a8344 [0x00000001107a82e0+0x64]
+J 8620 C2 scala.tools.nsc.transform.SpecializeTypes$$anonfun$transformInfo$1$$anonfun$apply$36.apply(Ljava/lang/Object;)Ljava/lang/Object; (9 bytes) @ 0x000000010f822cc4 [0x000000010f822c40+0x84]
+J 13080 C2 scala.tools.nsc.transform.SpecializeTypes$$anonfun$transformInfo$1.apply()Ljava/lang/Object; (5 bytes) @ 0x0000000110bc1248 [0x0000000110bc0dc0+0x488]
+J 11316 C2 scala.reflect.internal.SymbolTable.atPhase(Lscala/reflect/internal/Phase;Lscala/Function0;)Ljava/lang/Object; (28 bytes) @ 0x000000011092305c [0x0000000110922ee0+0x17c]
+J 8552 C2 scala.tools.nsc.transform.SpecializeTypes.transformInfo(Lscala/reflect/internal/Symbols$Symbol;Lscala/reflect/internal/Types$Type;)Lscala/reflect/internal/Types$Type; (378 bytes) @ 0x000000010f6ff55c [0x000000010f6ff380+0x1dc]
+J 12105 C2 scala.reflect.internal.Symbols$Symbol.rawInfo()Lscala/reflect/internal/Types$Type; (334 bytes) @ 0x0000000110318680 [0x0000000110318160+0x520]
+J 13297 C2 scala.reflect.internal.Symbols$Symbol.info()Lscala/reflect/internal/Types$Type; (334 bytes) @ 0x00000001107a8344 [0x00000001107a82e0+0x64]
+J 11733 C2 scala.reflect.internal.Symbols$Symbol.isDerivedValueClass()Z (70 bytes) @ 0x000000010f554c4c [0x000000010f554b80+0xcc]
+J 11796 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.preEraseNormalApply(Lscala/reflect/internal/Trees$Apply;)Lscala/reflect/internal/Trees$Tree; (274 bytes) @ 0x000000010fa65a58 [0x000000010fa65860+0x1f8]
+J 13083 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.preEraseApply(Lscala/reflect/internal/Trees$Apply;)Lscala/reflect/internal/Trees$Tree; (2531 bytes) @ 0x0000000110c3545c [0x0000000110c35040+0x41c]
+J 12904 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.preErase(Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree; (1415 bytes) @ 0x0000000110a91d2c [0x0000000110a91cc0+0x6c]
+J 12243 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.transform(Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree; (317 bytes) @ 0x0000000110348220 [0x0000000110348160+0xc0]
+J 8824 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.transform(Lscala/reflect/api/Trees$TreeApi;)Lscala/reflect/api/Trees$TreeApi; (9 bytes) @ 0x000000010f134a2c [0x000000010f1349e0+0x4c]
+J 11787 C2 scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree; (1923 bytes) @ 0x000000010ff88fc0 [0x000000010ff88aa0+0x520]
+J 6524 C2 scala.reflect.internal.SymbolTable.itransform(Lscala/reflect/api/Trees$Transformer;Lscala/reflect/api/Trees$TreeApi;)Lscala/reflect/api/Trees$TreeApi; (10 bytes) @ 0x000000010f94ea6c [0x000000010f94ea20+0x4c]
+J 12243 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.transform(Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree; (317 bytes) @ 0x00000001103490a4 [0x0000000110348160+0xf44]
+J 8824 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.transform(Lscala/reflect/api/Trees$TreeApi;)Lscala/reflect/api/Trees$TreeApi; (9 bytes) @ 0x000000010f134a2c [0x000000010f1349e0+0x4c]
+J 11787 C2 scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree; (1923 bytes) @ 0x000000010ff89118 [0x000000010ff88aa0+0x678]
+J 6524 C2 scala.reflect.internal.SymbolTable.itransform(Lscala/reflect/api/Trees$Transformer;Lscala/reflect/api/Trees$TreeApi;)Lscala/reflect/api/Trees$TreeApi; (10 bytes) @ 0x000000010f94ea6c [0x000000010f94ea20+0x4c]
+J 12243 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.transform(Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree; (317 bytes) @ 0x00000001103490a4 [0x0000000110348160+0xf44]
+J 8824 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.transform(Lscala/reflect/api/Trees$TreeApi;)Lscala/reflect/api/Trees$TreeApi; (9 bytes) @ 0x000000010f134a2c [0x000000010f1349e0+0x4c]
+J 12652 C2 scala.reflect.internal.Trees$$anonfun$itransform$2.apply()Ljava/lang/Object; (5 bytes) @ 0x000000010f767dcc [0x000000010f767c00+0x1cc]
+J 6583 C2 scala.tools.nsc.transform.TypingTransformers$TypingTransformer.atOwner(Lscala/reflect/internal/Trees$Tree;Lscala/reflect/internal/Symbols$Symbol;Lscala/Function0;)Ljava/lang/Object; (50 bytes) @ 0x000000010fa88ac4 [0x000000010fa88780+0x344]
+J 6595 C2 scala.tools.nsc.transform.TypingTransformers$TypingTransformer.atOwner(Lscala/reflect/api/Symbols$SymbolApi;Lscala/Function0;)Ljava/lang/Object; (10 bytes) @ 0x000000010fa840c4 [0x000000010fa84060+0x64]
+J 11787 C2 scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree; (1923 bytes) @ 0x000000010ff8a16c [0x000000010ff88aa0+0x16cc]
+J 6524 C2 scala.reflect.internal.SymbolTable.itransform(Lscala/reflect/api/Trees$Transformer;Lscala/reflect/api/Trees$TreeApi;)Lscala/reflect/api/Trees$TreeApi; (10 bytes) @ 0x000000010f94ea6c [0x000000010f94ea20+0x4c]
+J 12243 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.transform(Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree; (317 bytes) @ 0x0000000110348f58 [0x0000000110348160+0xdf8]
+J 8824 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.transform(Lscala/reflect/api/Trees$TreeApi;)Lscala/reflect/api/Trees$TreeApi; (9 bytes) @ 0x000000010f134a2c [0x000000010f1349e0+0x4c]
+J 4427 C2 scala.reflect.api.Trees$Transformer$$anonfun$transformStats$1.apply(Ljava/lang/Object;)Ljava/lang/Object; (9 bytes) @ 0x000000010f4be070 [0x000000010f4bdf00+0x170]
+J 1138 C2 scala.collection.immutable.List.loop$1(Lscala/collection/mutable/ListBuffer;Lscala/collection/immutable/List;Lscala/collection/immutable/List;Lscala/Function1;)Lscala/collection/immutable/List; (139 bytes) @ 0x000000010ee58a40 [0x000000010ee58900+0x140]
+J 5227 C2 scala.reflect.api.Trees$Transformer.transformStats(Lscala/collection/immutable/List;Lscala/reflect/api/Symbols$SymbolApi;)Lscala/collection/immutable/List; (28 bytes) @ 0x000000010f1e916c [0x000000010f1e90c0+0xac]
+J 11787 C2 scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree; (1923 bytes) @ 0x000000010ff8d70c [0x000000010ff88aa0+0x4c6c]
+J 6524 C2 scala.reflect.internal.SymbolTable.itransform(Lscala/reflect/api/Trees$Transformer;Lscala/reflect/api/Trees$TreeApi;)Lscala/reflect/api/Trees$TreeApi; (10 bytes) @ 0x000000010f94ea6c [0x000000010f94ea20+0x4c]
+J 12467 C2 scala.tools.nsc.transform.TypingTransformers$TypingTransformer$$anonfun$transform$1.apply()Ljava/lang/Object; (5 bytes) @ 0x000000010fe6f07c [0x000000010fe6f020+0x5c]
+J 6583 C2 scala.tools.nsc.transform.TypingTransformers$TypingTransformer.atOwner(Lscala/reflect/internal/Trees$Tree;Lscala/reflect/internal/Symbols$Symbol;Lscala/Function0;)Ljava/lang/Object; (50 bytes) @ 0x000000010fa88ac4 [0x000000010fa88780+0x344]
+J 12243 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.transform(Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree; (317 bytes) @ 0x0000000110348d10 [0x0000000110348160+0xbb0]
+J 8824 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.transform(Lscala/reflect/api/Trees$TreeApi;)Lscala/reflect/api/Trees$TreeApi; (9 bytes) @ 0x000000010f134a2c [0x000000010f1349e0+0x4c]
+J 12890 C2 scala.reflect.internal.Trees$$anonfun$itransform$4.apply()Ljava/lang/Object; (5 bytes) @ 0x00000001101d6764 [0x00000001101d6640+0x124]
+J 6583 C2 scala.tools.nsc.transform.TypingTransformers$TypingTransformer.atOwner(Lscala/reflect/internal/Trees$Tree;Lscala/reflect/internal/Symbols$Symbol;Lscala/Function0;)Ljava/lang/Object; (50 bytes) @ 0x000000010fa88ac4 [0x000000010fa88780+0x344]
+J 6595 C2 scala.tools.nsc.transform.TypingTransformers$TypingTransformer.atOwner(Lscala/reflect/api/Symbols$SymbolApi;Lscala/Function0;)Ljava/lang/Object; (10 bytes) @ 0x000000010fa840c4 [0x000000010fa84060+0x64]
+J 11787 C2 scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree; (1923 bytes) @ 0x000000010ff8d870 [0x000000010ff88aa0+0x4dd0]
+J 6524 C2 scala.reflect.internal.SymbolTable.itransform(Lscala/reflect/api/Trees$Transformer;Lscala/reflect/api/Trees$TreeApi;)Lscala/reflect/api/Trees$TreeApi; (10 bytes) @ 0x000000010f94ea6c [0x000000010f94ea20+0x4c]
+J 12243 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.transform(Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree; (317 bytes) @ 0x00000001103490a4 [0x0000000110348160+0xf44]
+J 8824 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.transform(Lscala/reflect/api/Trees$TreeApi;)Lscala/reflect/api/Trees$TreeApi; (9 bytes) @ 0x000000010f134a2c [0x000000010f1349e0+0x4c]
+J 4427 C2 scala.reflect.api.Trees$Transformer$$anonfun$transformStats$1.apply(Ljava/lang/Object;)Ljava/lang/Object; (9 bytes) @ 0x000000010f4be070 [0x000000010f4bdf00+0x170]
+J 1138 C2 scala.collection.immutable.List.loop$1(Lscala/collection/mutable/ListBuffer;Lscala/collection/immutable/List;Lscala/collection/immutable/List;Lscala/Function1;)Lscala/collection/immutable/List; (139 bytes) @ 0x000000010ee58a40 [0x000000010ee58900+0x140]
+J 5227 C2 scala.reflect.api.Trees$Transformer.transformStats(Lscala/collection/immutable/List;Lscala/reflect/api/Symbols$SymbolApi;)Lscala/collection/immutable/List; (28 bytes) @ 0x000000010f1e916c [0x000000010f1e90c0+0xac]
+j  scala.reflect.internal.Trees$$anonfun$itransform$7.apply()Lscala/collection/immutable/List;+18
+j  scala.reflect.internal.Trees$$anonfun$itransform$7.apply()Ljava/lang/Object;+1
+J 6583 C2 scala.tools.nsc.transform.TypingTransformers$TypingTransformer.atOwner(Lscala/reflect/internal/Trees$Tree;Lscala/reflect/internal/Symbols$Symbol;Lscala/Function0;)Ljava/lang/Object; (50 bytes) @ 0x000000010fa88ac4 [0x000000010fa88780+0x344]
+J 6595 C2 scala.tools.nsc.transform.TypingTransformers$TypingTransformer.atOwner(Lscala/reflect/api/Symbols$SymbolApi;Lscala/Function0;)Ljava/lang/Object; (10 bytes) @ 0x000000010fa840c4 [0x000000010fa84060+0x64]
+J 11787 C2 scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree; (1923 bytes) @ 0x000000010ff8dd04 [0x000000010ff88aa0+0x5264]
+J 6524 C2 scala.reflect.internal.SymbolTable.itransform(Lscala/reflect/api/Trees$Transformer;Lscala/reflect/api/Trees$TreeApi;)Lscala/reflect/api/Trees$TreeApi; (10 bytes) @ 0x000000010f94ea6c [0x000000010f94ea20+0x4c]
+J 12464 C2 scala.tools.nsc.transform.TypingTransformers$TypingTransformer.scala$tools$nsc$transform$TypingTransformers$TypingTransformer$$super$transform(Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree; (9 bytes) @ 0x000000010fd312ec [0x000000010fd312a0+0x4c]
+j  scala.tools.nsc.transform.TypingTransformers$TypingTransformer$$anonfun$transform$2.apply()Lscala/reflect/internal/Trees$Tree;+8
+j  scala.tools.nsc.transform.TypingTransformers$TypingTransformer$$anonfun$transform$2.apply()Ljava/lang/Object;+1
+J 6583 C2 scala.tools.nsc.transform.TypingTransformers$TypingTransformer.atOwner(Lscala/reflect/internal/Trees$Tree;Lscala/reflect/internal/Symbols$Symbol;Lscala/Function0;)Ljava/lang/Object; (50 bytes) @ 0x000000010fa88ac4 [0x000000010fa88780+0x344]
+J 12243 C2 scala.tools.nsc.transform.Erasure$ErasureTransformer$$anon$1.transform(Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree; (317 bytes) @ 0x0000000110348f1c [0x0000000110348160+0xdbc]
+j  scala.tools.nsc.transform.Erasure$ErasureTransformer.transform(Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Trees$Tree;+5
+j  scala.tools.nsc.transform.Erasure$ErasureTransformer.transform(Lscala/reflect/api/Trees$TreeApi;)Lscala/reflect/api/Trees$TreeApi;+5
+j  scala.tools.nsc.ast.Trees$Transformer.transformUnit(Lscala/tools/nsc/CompilationUnits$CompilationUnit;)V+6
+j  scala.tools.nsc.transform.Transform$Phase.apply(Lscala/tools/nsc/CompilationUnits$CompilationUnit;)V+11
+J 13246 C2 scala.tools.nsc.Global$GlobalPhase.applyPhase(Lscala/tools/nsc/CompilationUnits$CompilationUnit;)V (158 bytes) @ 0x000000010fe79a50 [0x000000010fe798c0+0x190]
+J 9427 C2 scala.tools.nsc.Global$GlobalPhase$$anonfun$run$1.apply(Ljava/lang/Object;)Ljava/lang/Object; (12 bytes) @ 0x000000011005d2ec [0x000000011005d2a0+0x4c]
+J 2402 C2 scala.collection.AbstractIterator.foreach(Lscala/Function1;)V (6 bytes) @ 0x000000010eea169c [0x000000010eea1620+0x7c]
+j  scala.tools.nsc.Global$GlobalPhase.run()V+26
+j  scala.tools.nsc.Global$Run.compileUnitsInternal(Lscala/collection/immutable/List;Lscala/reflect/internal/Phase;)V+158
+j  scala.tools.nsc.Global$Run.compileUnits(Lscala/collection/immutable/List;Lscala/reflect/internal/Phase;)V+3
+j  scala.tools.nsc.Global$Run.compileSources(Lscala/collection/immutable/List;)V+90
+j  scala.tools.nsc.Global$Run.compile(Lscala/collection/immutable/List;)V+69
+j  xsbt.CachedCompiler0.run(Lscala/collection/immutable/List;Lxsbti/compile/DependencyChanges;Lxsbti/AnalysisCallback;Lxsbti/Logger;Lxsbt/DelegatingReporter;Lxsbti/compile/CompileProgress;)V+154
+j  xsbt.CachedCompiler0.run([Ljava/io/File;Lxsbti/compile/DependencyChanges;Lxsbti/AnalysisCallback;Lxsbti/Logger;Lxsbti/Reporter;Lxsbti/compile/CompileProgress;)V+54
+j  xsbt.CompilerInterface.run([Ljava/io/File;Lxsbti/compile/DependencyChanges;Lxsbti/AnalysisCallback;Lxsbti/Logger;Lxsbti/Reporter;Lxsbti/compile/CompileProgress;Lxsbti/compile/CachedCompiler;)V+11
+v  ~StubRoutines::call_stub
+j  sun.reflect.NativeMethodAccessorImpl.invoke0(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;+0
+j  sun.reflect.NativeMethodAccessorImpl.invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;+87
+J 11391 C2 java.lang.reflect.Method.invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object; (63 bytes) @ 0x00000001109682ac [0x0000000110968200+0xac]
+j  sbt.compiler.AnalyzingCompiler.call(Ljava/lang/String;Ljava/lang/String;Lsbt/Logger;Lscala/collection/Seq;Lscala/collection/Seq;)Ljava/lang/Object;+61
+j  sbt.compiler.AnalyzingCompiler.compile(Lscala/collection/Seq;Lxsbti/compile/DependencyChanges;Lxsbti/AnalysisCallback;Lsbt/Logger;Lxsbti/Reporter;Lxsbti/compile/CompileProgress;Lxsbti/compile/CachedCompiler;)V+157
+j  sbt.compiler.AnalyzingCompiler.compile(Lscala/collection/Seq;Lxsbti/compile/DependencyChanges;Lscala/collection/Seq;Lxsbti/compile/Output;Lxsbti/AnalysisCallback;Lxsbti/Reporter;Lxsbti/compile/GlobalsCache;Lsbt/Logger;Lscala/Option;)V+78
+j  sbt.compiler.AggressiveCompile$$anonfun$3$$anonfun$compileScala$1$1.apply$mcV$sp()V+76
+j  sbt.compiler.AggressiveCompile$$anonfun$3$$anonfun$compileScala$1$1.apply()V+1
+j  sbt.compiler.AggressiveCompile$$anonfun$3$$anonfun$compileScala$1$1.apply()Ljava/lang/Object;+1
+j  sbt.compiler.AggressiveCompile.sbt$compiler$AggressiveCompile$$timed(Ljava/lang/String;Lsbt/Logger;Lscala/Function0;)Ljava/lang/Object;+6
+j  sbt.compiler.AggressiveCompile$$anonfun$3.compileScala$1(Lxsbti/compile/DependencyChanges;Lxsbti/AnalysisCallback;Lscala/collection/Seq;Lscala/collection/Seq;)V+110
+j  sbt.compiler.AggressiveCompile$$anonfun$3.apply(Lscala/collection/immutable/Set;Lxsbti/compile/DependencyChanges;Lxsbti/AnalysisCallback;)V+221
+j  sbt.compiler.AggressiveCompile$$anonfun$3.apply(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;+13
+j  sbt.inc.IncrementalCompile$$anonfun$doCompile$1.apply(Lscala/collection/immutable/Set;Lxsbti/compile/DependencyChanges;)Lsbt/inc/Analysis;+35
+j  sbt.inc.IncrementalCompile$$anonfun$doCompile$1.apply(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;+9
+j  sbt.inc.IncrementalCommon.cycle(Lscala/collection/immutable/Set;Lscala/collection/immutable/Set;Lxsbti/compile/DependencyChanges;Lsbt/inc/Analysis;Lscala/Function2;Lsbt/inc/ClassfileManager;I)Lsbt/inc/Analysis;+77
+j  sbt.inc.Incremental$$anonfun$1.apply(Lsbt/inc/ClassfileManager;)Lsbt/inc/Analysis;+26
+j  sbt.inc.Incremental$$anonfun$1.apply(Ljava/lang/Object;)Ljava/lang/Object;+5
+j  sbt.inc.Incremental$.manageClassfiles(Lsbt/inc/IncOptions;Lscala/Function1;)Ljava/lang/Object;+15
+j  sbt.inc.Incremental$.compile(Lscala/collection/immutable/Set;Lscala/Function1;Lsbt/inc/Analysis;Lsbt/inc/ReadStamps;Lscala/Function1;Lscala/Function2;Lsbt/Logger;Lsbt/inc/IncOptions;Lscala/math/Equiv;)Lscala/Tuple2;+113
+j  sbt.inc.IncrementalCompile$.apply(Lscala/collection/immutable/Set;Lscala/Function1;Lscala/Function3;Lsbt/inc/Analysis;Lscala/Function1;Lxsbti/compile/Output;Lsbt/Logger;Lsbt/inc/IncOptions;)Lscala/Tuple2;+82
+j  sbt.compiler.AggressiveCompile.compile2(Lsbt/compiler/CompileConfiguration;Lsbt/Logger;Lscala/math/Equiv;)Lscala/Tuple2;+301
+j  sbt.compiler.AggressiveCompile.compile1(Lscala/collection/Seq;Lscala/collection/Seq;Lsbt/CompileSetup;Lscala/Option;Lsbt/inc/AnalysisStore;Lscala/Function1;Lscala/Function1;Lsbt/compiler/AnalyzingCompiler;Lxsbti/compile/JavaCompiler;Lxsbti/Reporter;ZLxsbti/compile/GlobalsCache;Lsbt/inc/IncOptions;Lsbt/Logger;)Lsbt/inc/Analysis;+148
+j  com.typesafe.zinc.Compiler.compile(Lcom/typesafe/zinc/Inputs;Lscala/Option;Lxsbti/Reporter;Lxsbti/Logger;)Lsbt/inc/Analysis;+232
+j  com.typesafe.zinc.Compiler.compile(Lcom/typesafe/zinc/Inputs;Lscala/Option;Lxsbti/Logger;)Lsbt/inc/Analysis;+32
+j  com.typesafe.zinc.Main$.run([Ljava/lang/String;Lscala/Option;)V+593
+j  com.typesafe.zinc.Nailgun$.zinc(Lcom/martiansoftware/nailgun/NGContext;)V+25
+j  com.typesafe.zinc.Nailgun$.nailMain(Lcom/martiansoftware/nailgun/NGContext;)V+37
+j  com.typesafe.zinc.Nailgun.nailMain(Lcom/martiansoftware/nailgun/NGContext;)V+4
+j  sun.reflect.GeneratedMethodAccessor3.invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;+24
+J 11391 C2 java.lang.reflect.Method.invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object; (63 bytes) @ 0x00000001109682ac [0x0000000110968200+0xac]
+j  com.martiansoftware.nailgun.NGSession.run()V+612
+v  ~StubRoutines::call_stub
+
+---------------  P R O C E S S  ---------------
+
+Java Threads: ( => current thread )
+  0x00007fa5940c5800 JavaThread "NGSession 79: (idle)" [_thread_blocked, id=15003, stack(0x00007000011cd000,0x00007000012cd000)]
+=>0x00007fa5968dd800 JavaThread "NGSession 65: 127.0.0.1: zinc" [_thread_in_native, id=13671, stack(0x0000700000fc7000,0x00007000010c7000)]
+  0x00007fa59454e000 JavaThread "process reaper" daemon [_thread_blocked, id=19547, stack(0x0000700000097000,0x00007000000bf000)]
+  0x00007fa594805000 JavaThread "DestroyJavaVM" [_thread_blocked, id=5891, stack(0x000070000011a000,0x000070000021a000)]
+  0x00007fa5948ff800 JavaThread "ZincNailgun(3030)" [_thread_in_native, id=18947, stack(0x0000700000ec4000,0x0000700000fc4000)]
+  0x00007fa59482a800 JavaThread "Service Thread" daemon [_thread_blocked, id=17923, stack(0x0000700000cbe000,0x0000700000dbe000)]
+  0x00007fa593830800 JavaThread "C2 CompilerThread1" daemon [_thread_blocked, id=17411, stack(0x0000700000bbb000,0x0000700000cbb000)]
+  0x00007fa594829800 JavaThread "C2 CompilerThread0" daemon [_thread_blocked, id=16899, stack(0x0000700000ab8000,0x0000700000bb8000)]
+  0x00007fa59481d800 JavaThread "Signal Dispatcher" daemon [_thread_blocked, id=13839, stack(0x00007000009b5000,0x0000700000ab5000)]
+  0x00007fa59480a800 JavaThread "Finalizer" daemon [_thread_blocked, id=12291, stack(0x000070000082f000,0x000070000092f000)]
+  0x00007fa594809800 JavaThread "Reference Handler" daemon [_thread_blocked, id=11779, stack(0x000070000072c000,0x000070000082c000)]
+
+Other Threads:
+  0x00007fa59404d000 VMThread [stack: 0x0000700000629000,0x0000700000729000] [id=11267]
+  0x00007fa59405f000 WatcherThread [stack: 0x0000700000dc1000,0x0000700000ec1000] [id=18435]
+
+VM state:not at safepoint (normal execution)
+
+VM Mutex/Monitor currently owned by a thread: None
+
+Heap
+ PSYoungGen      total 577536K, used 365308K [0x00000007d5500000, 0x0000000800000000, 0x0000000800000000)
+  eden space 488448K, 56% used [0x00000007d5500000,0x00000007e6321378,0x00000007f3200000)
+  from space 89088K, 99% used [0x00000007f3200000,0x00000007f889dff8,0x00000007f8900000)
+  to   space 116224K, 0% used [0x00000007f8e80000,0x00000007f8e80000,0x0000000800000000)
+ ParOldGen       total 479744K, used 174901K [0x0000000780000000, 0x000000079d480000, 0x00000007d5500000)
+  object space 479744K, 36% used [0x0000000780000000,0x000000078aacd448,0x000000079d480000)
+ PSPermGen       total 83456K, used 63064K [0x0000000760000000, 0x0000000765180000, 0x0000000780000000)
+  object space 83456K, 75% used [0x0000000760000000,0x0000000763d96210,0x0000000765180000)
+
+Card table byte_map: [0x000000012f463000,0x000000012f964000] byte_map_base: 0x000000012b963000
+
+Polling page: 0x000000010d97b000
+
+Code Cache  [0x000000010ec63000, 0x0000000110e43000, 0x000000012ec63000)
+ total_blobs=9835 nmethods=9453 adapters=328 free_code_cache=490042Kb largest_free_block=501351616
+
+Compilation events (10 events):
+Event: 778.811 Thread 0x00007fa594829800 13415             scala.tools.nsc.transform.SpecializeTypes::unify (54 bytes)
+Event: 778.817 Thread 0x00007fa594829800 nmethod 13415 0x000000011053d4d0 code [0x000000011053d680, 0x000000011053da08]
+Event: 778.962 Thread 0x00007fa593830800 13416             sun.security.provider.ByteArrayAccess::i2bBig (204 bytes)
+Event: 778.967 Thread 0x00007fa593830800 nmethod 13416 0x000000011082a6d0 code [0x000000011082a820, 0x000000011082aa78]
+Event: 779.010 Thread 0x00007fa594829800 13417             java.io.ObjectInputStream::readArray (444 bytes)
+Event: 779.028 Thread 0x00007fa594829800 nmethod 13417 0x00000001108dd7d0 code [0x00000001108dda60, 0x00000001108de810]
+Event: 780.053 Thread 0x00007fa593830800 13418             scala.tools.nsc.ast.TreeDSL$CODE$DefSymStart::scala$tools$nsc$ast$TreeDSL$CODE$VODDStart$$_pos (5 bytes)
+Event: 780.053 Thread 0x00007fa593830800 nmethod 13418 0x00000001100eed90 code [0x00000001100eeec0, 0x00000001100eef38]
+Event: 780.406 Thread 0x00007fa594829800 13419             scala.tools.nsc.transform.ExplicitOuter$OuterPathTransformer$$anonfun$2::apply (12 bytes)
+Event: 780.408 Thread 0x00007fa594829800 nmethod 13419 0x00000001108dd490 code [0x00000001108dd5e0, 0x00000001108dd6b8]
+
+GC Heap History (10 events):
+Event: 766.646 GC heap before
+{Heap before GC invocations=147 (full 12):
+ PSYoungGen      total 546816K, used 480899K [0x00000007d5500000, 0x00000007fea00000, 0x0000000800000000)
+  eden space 445440K, 100% used [0x00000007d5500000,0x00000007f0800000,0x00000007f0800000)
+  from space 101376K, 34% used [0x00000007f8700000,0x00000007fa9a0e50,0x00000007fea00000)
+  to   space 115712K, 0% used [0x00000007f0800000,0x00000007f0800000,0x00000007f7900000)
+ ParOldGen       total 479744K, used 148456K [0x0000000780000000, 0x000000079d480000, 0x00000007d5500000)
+  object space 479744K, 30% used [0x0000000780000000,0x00000007890fa098,0x000000079d480000)
+ PSPermGen       total 83456K, used 62797K [0x0000000760000000, 0x0000000765180000, 0x0000000780000000)
+  object space 83456K, 75% used [0x0000000760000000,0x0000000763d53678,0x0000000765180000)
+Event: 766.725 GC heap after
+Heap after GC invocations=147 (full 12):
+ PSYoungGen      total 561152K, used 20724K [0x00000007d5500000, 0x0000000800000000, 0x0000000800000000)
+  eden space 445440K, 0% used [0x00000007d5500000,0x00000007d5500000,0x00000007f0800000)
+  from space 115712K, 17% used [0x00000007f0800000,0x00000007f1c3d350,0x00000007f7900000)
+  to   space 111616K, 0% used [0x00000007f9300000,0x00000007f9300000,0x0000000800000000)
+ ParOldGen       total 479744K, used 174901K [0x0000000780000000, 0x000000079d480000, 0x00000007d5500000)
+  object space 479744K, 36% used [0x0000000780000000,0x000000078aacd448,0x000000079d480000)
+ PSPermGen       total 83456K, used 62797K [0x0000000760000000, 0x0000000765180000, 0x0000000780000000)
+  object space 83456K, 75% used [0x0000000760000000,0x0000000763d53678,0x0000000765180000)
+}
+Event: 768.876 GC heap before
+{Heap before GC invocations=148 (full 12):
+ PSYoungGen      total 561152K, used 466164K [0x00000007d5500000, 0x0000000800000000, 0x0000000800000000)
+  eden space 445440K, 100% used [0x00000007d5500000,0x00000007f0800000,0x00000007f0800000)
+  from space 115712K, 17% used [0x00000007f0800000,0x00000007f1c3d350,0x00000007f7900000)
+  to   space 111616K, 0% used [0x00000007f9300000,0x00000007f9300000,0x0000000800000000)
+ ParOldGen       total 479744K, used 174901K [0x0000000780000000, 0x000000079d480000, 0x00000007d5500000)
+  object space 479744K, 36% used [0x0000000780000000,0x000000078aacd448,0x000000079d480000)
+ PSPermGen       total 83456K, used 62874K [0x0000000760000000, 0x0000000765180000, 0x0000000780000000)
+  object space 83456K, 75% used [0x0000000760000000,0x0000000763d66a00,0x0000000765180000)
+Event: 768.911 GC heap after
+Heap after GC invocations=148 (full 12):
+ PSYoungGen      total 565248K, used 39463K [0x00000007d5500000, 0x00000007fee00000, 0x0000000800000000)
+  eden space 472064K, 0% used [0x00000007d5500000,0x00000007d5500000,0x00000007f2200000)
+  from space 93184K, 42% used [0x00000007f9300000,0x00000007fb989f00,0x00000007fee00000)
+  to   space 104448K, 0% used [0x00000007f2200000,0x00000007f2200000,0x00000007f8800000)
+ ParOldGen       total 479744K, used 174901K [0x0000000780000000, 0x000000079d480000, 0x00000007d5500000)
+  object space 479744K, 36% used [0x0000000780000000,0x000000078aacd448,0x000000079d480000)
+ PSPermGen       total 83456K, used 62874K [0x0000000760000000, 0x0000000765180000, 0x0000000780000000)
+  object space 83456K, 75% used [0x0000000760000000,0x0000000763d66a00,0x0000000765180000)
+}
+Event: 771.439 GC heap before
+{Heap before GC invocations=149 (full 12):
+ PSYoungGen      total 565248K, used 511527K [0x00000007d5500000, 0x00000007fee00000, 0x0000000800000000)
+  eden space 472064K, 100% used [0x00000007d5500000,0x00000007f2200000,0x00000007f2200000)
+  from space 93184K, 42% used [0x00000007f9300000,0x00000007fb989f00,0x00000007fee00000)
+  to   space 104448K, 0% used [0x00000007f2200000,0x00000007f2200000,0x00000007f8800000)
+ ParOldGen       total 479744K, used 174901K [0x0000000780000000, 0x000000079d480000, 0x00000007d5500000)
+  object space 479744K, 36% used [0x0000000780000000,0x000000078aacd448,0x000000079d480000)
+ PSPermGen       total 83456K, used 62888K [0x0000000760000000, 0x0000000765180000, 0x0000000780000000)
+  object space 83456K, 75% used [0x0000000760000000,0x0000000763d6a140,0x0000000765180000)
+Event: 771.479 GC heap after
+Heap after GC invocations=149 (full 12):
+ PSYoungGen      total 576512K, used 42777K [0x00000007d5500000, 0x0000000800000000, 0x0000000800000000)
+  eden space 472064K, 0% used [0x00000007d5500000,0x00000007d5500000,0x00000007f2200000)
+  from space 104448K, 40% used [0x00000007f2200000,0x00000007f4bc6738,0x00000007f8800000)
+  to   space 99840K, 0% used [0x00000007f9e80000,0x00000007f9e80000,0x0000000800000000)
+ ParOldGen       total 479744K, used 174901K [0x0000000780000000, 0x000000079d480000, 0x00000007d5500000)
+  object space 479744K, 36% used [0x0000000780000000,0x000000078aacd448,0x000000079d480000)
+ PSPermGen       total 83456K, used 62888K [0x0000000760000000, 0x0000000765180000, 0x0000000780000000)
+  object space 83456K, 75% used [0x0000000760000000,0x0000000763d6a140,0x0000000765180000)
+}
+Event: 776.086 GC heap before
+{Heap before GC invocations=150 (full 12):
+ PSYoungGen      total 576512K, used 514841K [0x00000007d5500000, 0x0000000800000000, 0x0000000800000000)
+  eden space 472064K, 100% used [0x00000007d5500000,0x00000007f2200000,0x00000007f2200000)
+  from space 104448K, 40% used [0x00000007f2200000,0x00000007f4bc6738,0x00000007f8800000)
+  to   space 99840K, 0% used [0x00000007f9e80000,0x00000007f9e80000,0x0000000800000000)
+ ParOldGen       total 479744K, used 174901K [0x0000000780000000, 0x000000079d480000, 0x00000007d5500000)
+  object space 479744K, 36% used [0x0000000780000000,0x000000078aacd448,0x000000079d480000)
+ PSPermGen       total 83456K, used 63040K [0x0000000760000000, 0x0000000765180000, 0x0000000780000000)
+  object space 83456K, 75% used [0x0000000760000000,0x0000000763d90288,0x0000000765180000)
+Event: 776.178 GC heap after
+Heap after GC invocations=150 (full 12):
+ PSYoungGen      total 588288K, used 70741K [0x00000007d5500000, 0x0000000800000000, 0x0000000800000000)
+  eden space 488448K, 0% used [0x00000007d5500000,0x00000007d5500000,0x00000007f3200000)
+  from space 99840K, 70% used [0x00000007f9e80000,0x00000007fe395550,0x0000000800000000)
+  to   space 105472K, 0% used [0x00000007f3200000,0x00000007f3200000,0x00000007f9900000)
+ ParOldGen       total 479744K, used 174901K [0x0000000780000000, 0x000000079d480000, 0x00000007d5500000)
+  object space 479744K, 36% used [0x0000000780000000,0x000000078aacd448,0x000000079d480000)
+ PSPermGen       total 83456K, used 63040K [0x0000000760000000, 0x0000000765180000, 0x0000000780000000)
+  object space 83456K, 75% used [0x0000000760000000,0x0000000763d90288,0x0000000765180000)
+}
+Event: 779.360 GC heap before
+{Heap before GC invocations=151 (full 12):
+ PSYoungGen      total 588288K, used 559189K [0x00000007d5500000, 0x0000000800000000, 0x0000000800000000)
+  eden space 488448K, 100% used [0x00000007d5500000,0x00000007f3200000,0x00000007f3200000)
+  from space 99840K, 70% used [0x00000007f9e80000,0x00000007fe395550,0x0000000800000000)
+  to   space 105472K, 0% used [0x00000007f3200000,0x00000007f3200000,0x00000007f9900000)
+ ParOldGen       total 479744K, used 174901K [0x0000000780000000, 0x000000079d480000, 0x00000007d5500000)
+  object space 479744K, 36% used [0x0000000780000000,0x000000078aacd448,0x000000079d480000)
+ PSPermGen       total 83456K, used 63064K [0x0000000760000000, 0x0000000765180000, 0x0000000780000000)
+  object space 83456K, 75% used [0x0000000760000000,0x0000000763d96210,0x0000000765180000)
+Event: 779.460 GC heap after
+Heap after GC invocations=151 (full 12):
+ PSYoungGen      total 577536K, used 88695K [0x00000007d5500000, 0x0000000800000000, 0x0000000800000000)
+  eden space 488448K, 0% used [0x00000007d5500000,0x00000007d5500000,0x00000007f3200000)
+  from space 89088K, 99% used [0x00000007f3200000,0x00000007f889dff8,0x00000007f8900000)
+  to   space 116224K, 0% used [0x00000007f8e80000,0x00000007f8e80000,0x0000000800000000)
+ ParOldGen       total 479744K, used 174901K [0x0000000780000000, 0x000000079d480000, 0x00000007d5500000)
+  object space 479744K, 36% used [0x0000000780000000,0x000000078aacd448,0x000000079d480000)
+ PSPermGen       total 83456K, used 63064K [0x0000000760000000, 0x0000000765180000, 0x0000000780000000)
+  object space 83456K, 75% used [0x0000000760000000,0x0000000763d96210,0x0000000765180000)
+}
+
+Deoptimization events (10 events):
+Event: 778.819 Thread 0x00007fa5968dd800 Uncommon trap: reason=unreached action=none pc=0x000000010ff8e73c method=scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Tre
+Event: 778.819 Thread 0x00007fa5968dd800 Uncommon trap: reason=unreached action=none pc=0x000000010ff8e760 method=scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Tre
+Event: 778.823 Thread 0x00007fa5968dd800 Uncommon trap: reason=unreached action=none pc=0x000000010ff8e73c method=scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Tre
+Event: 778.823 Thread 0x00007fa5968dd800 Uncommon trap: reason=unreached action=none pc=0x000000010ff8e760 method=scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Tre
+Event: 778.824 Thread 0x00007fa5968dd800 Uncommon trap: reason=unreached action=none pc=0x000000010ff8e73c method=scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Tre
+Event: 778.824 Thread 0x00007fa5968dd800 Uncommon trap: reason=unreached action=none pc=0x000000010ff8e760 method=scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Tre
+Event: 778.824 Thread 0x00007fa5968dd800 Uncommon trap: reason=unreached action=none pc=0x000000010ff8e73c method=scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Tre
+Event: 778.824 Thread 0x00007fa5968dd800 Uncommon trap: reason=unreached action=none pc=0x000000010ff8e760 method=scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Tre
+Event: 778.826 Thread 0x00007fa5968dd800 Uncommon trap: reason=unreached action=none pc=0x000000010ff8e73c method=scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Tre
+Event: 778.826 Thread 0x00007fa5968dd800 Uncommon trap: reason=unreached action=none pc=0x000000010ff8e760 method=scala.reflect.internal.Trees$class.itransform(Lscala/reflect/internal/SymbolTable;Lscala/reflect/api/Trees$Transformer;Lscala/reflect/internal/Trees$Tree;)Lscala/reflect/internal/Tre
+
+Internal exceptions (10 events):
+Event: 774.188 Thread 0x00007fa5986bd000 Threw 0x00000007e7c68368 at /HUDSON/workspace/7u-2-build-macosx-x86_64/jdk7u79/2331/hotspot/src/share/vm/prims/jvm.cpp:1304
+Event: 774.197 Thread 0x00007fa5986bd000 Threw 0x00000007e7d01d28 at /HUDSON/workspace/7u-2-build-macosx-x86_64/jdk7u79/2331/hotspot/src/share/vm/prims/jvm.cpp:1304
+Event: 774.198 Thread 0x00007fa5986bd000 Threw 0x00000007e7d05b78 at /HUDSON/workspace/7u-2-build-macosx-x86_64/jdk7u79/2331/hotspot/src/share/vm/prims/jvm.cpp:1304
+Event: 774.199 Thread 0x00007fa5986bd000 Threw 0x00000007e7d08d98 at /HUDSON/workspace/7u-2-build-macosx-x86_64/jdk7u79/2331/hotspot/src/share/vm/prims/jvm.cpp:1304
+Event: 774.199 Thread 0x00007fa5986bd000 Threw 0x00000007e7d0c0f0 at /HUDSON/workspace/7u-2-build-macosx-x86_64/jdk7u79/2331/hotspot/src/share/vm/prims/jvm.cpp:1304
+Event: 774.208 Thread 0x00007fa5986bd000 Threw 0x00000007e7db6c60 at /HUDSON/workspace/7u-2-build-macosx-x86_64/jdk7u79/2331/hotspot/src/share/vm/prims/jvm.cpp:1304
+Event: 774.211 Thread 0x00007fa5986bd000 Threw 0x00000007e7dd93f8 at /HUDSON/workspace/7u-2-build-macosx-x86_64/jdk7u79/2331/hotspot/src/share/vm/prims/jvm.cpp:1304
+Event: 774.212 Thread 0x00007fa5986bd000 Threw 0x00000007e7ddceb0 at /HUDSON/workspace/7u-2-build-macosx-x86_64/jdk7u79/2331/hotspot/src/share/vm/prims/jvm.cpp:1304
+Event: 779.088 Thread 0x00007fa597f4f800 Threw 0x00000007ef6694a8 at /HUDSON/workspace/7u-2-build-macosx-x86_64/jdk7u79/2331/hotspot/src/share/vm/prims/jvm.cpp:1304
+Event: 779.089 Thread 0x00007fa597f4f800 Threw 0x00000007ef66d230 at /HUDSON/workspace/7u-2-build-macosx-x86_64/jdk7u79/2331/hotspot/src/share/vm/prims/jvm.cpp:1304
+
+Events (10 events):
+Event: 778.955 Thread 0x00007fa5940c5800 Thread added: 0x00007fa5940c5800
+Event: 779.088 loading class 0x00007fa5936a09c0
+Event: 779.088 loading class 0x00007fa5936a09c0 done
+Event: 779.089 loading class 0x00007fa59370ea70
+Event: 779.089 loading class 0x00007fa59370ea70 done
+Event: 779.093 Executing VM operation: RevokeBias
+Event: 779.093 Executing VM operation: RevokeBias done
+Event: 779.093 Thread 0x00007fa597f4f800 Thread exited: 0x00007fa597f4f800
+Event: 779.360 Executing VM operation: ParallelGCFailedAllocation
+Event: 779.460 Executing VM operation: ParallelGCFailedAllocation done
+
+
+Dynamic libraries:
+0x0000000005e1a000 	/System/Library/Frameworks/Cocoa.framework/Versions/A/Cocoa
+0x0000000005e1a000 	/System/Library/Frameworks/Security.framework/Versions/A/Security
+0x0000000005e1a000 	/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices
+0x0000000005e1a000 	/usr/lib/libz.1.dylib
+0x0000000005e1a000 	/usr/lib/libSystem.B.dylib
+0x0000000005e1a000 	/usr/lib/libobjc.A.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation
+0x0000000005e1a000 	/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation
+0x0000000005e1a000 	/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit
+0x0000000005e1a000 	/System/Library/Frameworks/CoreData.framework/Versions/A/CoreData
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/RemoteViewServices.framework/Versions/A/RemoteViewServices
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/UIFoundation.framework/Versions/A/UIFoundation
+0x0000000005e1a000 	/usr/lib/libScreenReader.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/Accelerate.framework/Versions/A/Accelerate
+0x0000000005e1a000 	/System/Library/Frameworks/IOSurface.framework/Versions/A/IOSurface
+0x0000000005e1a000 	/System/Library/Frameworks/AudioToolbox.framework/Versions/A/AudioToolbox
+0x0000000005e1a000 	/System/Library/Frameworks/AudioUnit.framework/Versions/A/AudioUnit
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/DataDetectorsCore.framework/Versions/A/DataDetectorsCore
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/DesktopServicesPriv.framework/Versions/A/DesktopServicesPriv
+0x0000000005e1a000 	/System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/HIToolbox.framework/Versions/A/HIToolbox
+0x0000000005e1a000 	/System/Library/Frameworks/QuartzCore.framework/Versions/A/QuartzCore
+0x0000000005e1a000 	/System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/SpeechRecognition.framework/Versions/A/SpeechRecognition
+0x0000000005e1a000 	/usr/lib/libauto.dylib
+0x0000000005e1a000 	/usr/lib/libicucore.A.dylib
+0x0000000005e1a000 	/usr/lib/libxml2.2.dylib
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/CoreUI.framework/Versions/A/CoreUI
+0x0000000005e1a000 	/System/Library/Frameworks/CoreAudio.framework/Versions/A/CoreAudio
+0x0000000005e1a000 	/System/Library/Frameworks/DiskArbitration.framework/Versions/A/DiskArbitration
+0x0000000005e1a000 	/usr/lib/liblangid.dylib
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/MultitouchSupport.framework/Versions/A/MultitouchSupport
+0x0000000005e1a000 	/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit
+0x0000000005e1a000 	/usr/lib/libDiagnosticMessagesClient.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/PerformanceAnalysis.framework/Versions/A/PerformanceAnalysis
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/GenerationalStorage.framework/Versions/A/GenerationalStorage
+0x0000000005e1a000 	/System/Library/Frameworks/OpenGL.framework/Versions/A/OpenGL
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/Sharing.framework/Versions/A/Sharing
+0x0000000005e1a000 	/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics
+0x0000000005e1a000 	/System/Library/Frameworks/CoreImage.framework/Versions/A/CoreImage
+0x0000000005e1a000 	/System/Library/Frameworks/CoreText.framework/Versions/A/CoreText
+0x0000000005e1a000 	/System/Library/Frameworks/ImageIO.framework/Versions/A/ImageIO
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/Backup.framework/Versions/A/Backup
+0x0000000005e1a000 	/usr/lib/libextension.dylib
+0x0000000005e1a000 	/usr/lib/libarchive.2.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/CFNetwork.framework/Versions/A/CFNetwork
+0x0000000005e1a000 	/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/SystemConfiguration
+0x0000000005e1a000 	/usr/lib/libCRFSuite.dylib
+0x0000000005e1a000 	/usr/lib/libc++.1.dylib
+0x0000000005e1a000 	/usr/lib/libc++abi.dylib
+0x0000000005e1a000 	/usr/lib/system/libcache.dylib
+0x0000000005e1a000 	/usr/lib/system/libcommonCrypto.dylib
+0x0000000005e1a000 	/usr/lib/system/libcompiler_rt.dylib
+0x0000000005e1a000 	/usr/lib/system/libcopyfile.dylib
+0x0000000005e1a000 	/usr/lib/system/libcorecrypto.dylib
+0x0000000005e1a000 	/usr/lib/system/libdispatch.dylib
+0x0000000005e1a000 	/usr/lib/system/libdyld.dylib
+0x0000000005e1a000 	/usr/lib/system/libkeymgr.dylib
+0x0000000005e1a000 	/usr/lib/system/liblaunch.dylib
+0x0000000005e1a000 	/usr/lib/system/libmacho.dylib
+0x0000000005e1a000 	/usr/lib/system/libquarantine.dylib
+0x0000000005e1a000 	/usr/lib/system/libremovefile.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_asl.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_blocks.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_c.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_configuration.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_coreservices.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_coretls.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_dnssd.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_info.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_kernel.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_m.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_malloc.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_network.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_networkextension.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_notify.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_platform.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_pthread.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_sandbox.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_secinit.dylib
+0x0000000005e1a000 	/usr/lib/system/libsystem_trace.dylib
+0x0000000005e1a000 	/usr/lib/system/libunc.dylib
+0x0000000005e1a000 	/usr/lib/system/libunwind.dylib
+0x0000000005e1a000 	/usr/lib/system/libxpc.dylib
+0x0000000005e1a000 	/usr/lib/libenergytrace.dylib
+0x0000000005e1a000 	/usr/lib/libbsm.0.dylib
+0x0000000005e1a000 	/usr/lib/system/libkxld.dylib
+0x0000000005e1a000 	/usr/lib/libxar.1.dylib
+0x0000000005e1a000 	/usr/lib/libsqlite3.dylib
+0x0000000005e1a000 	/usr/lib/libpam.2.dylib
+0x0000000005e1a000 	/usr/lib/libOpenScriptingUtil.dylib
+0x0000000005e1a000 	/usr/lib/libbz2.1.0.dylib
+0x0000000005e1a000 	/usr/lib/liblzma.5.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/FSEvents.framework/Versions/A/FSEvents
+0x0000000005e1a000 	/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/CarbonCore.framework/Versions/A/CarbonCore
+0x0000000005e1a000 	/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/Metadata.framework/Versions/A/Metadata
+0x0000000005e1a000 	/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/OSServices.framework/Versions/A/OSServices
+0x0000000005e1a000 	/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/SearchKit.framework/Versions/A/SearchKit
+0x0000000005e1a000 	/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/AE.framework/Versions/A/AE
+0x0000000005e1a000 	/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/LaunchServices
+0x0000000005e1a000 	/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/DictionaryServices.framework/Versions/A/DictionaryServices
+0x0000000005e1a000 	/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/SharedFileList.framework/Versions/A/SharedFileList
+0x0000000005e1a000 	/System/Library/Frameworks/NetFS.framework/Versions/A/NetFS
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/NetAuth.framework/Versions/A/NetAuth
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/login.framework/Versions/A/Frameworks/loginsupport.framework/Versions/A/loginsupport
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/TCC.framework/Versions/A/TCC
+0x0000000005e1a000 	/usr/lib/libmecabra.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/ATS.framework/Versions/A/ATS
+0x0000000005e1a000 	/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/ColorSync.framework/Versions/A/ColorSync
+0x0000000005e1a000 	/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/HIServices.framework/Versions/A/HIServices
+0x0000000005e1a000 	/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/LangAnalysis.framework/Versions/A/LangAnalysis
+0x0000000005e1a000 	/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/PrintCore.framework/Versions/A/PrintCore
+0x0000000005e1a000 	/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/QD.framework/Versions/A/QD
+0x0000000005e1a000 	/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/SpeechSynthesis.framework/Versions/A/SpeechSynthesis
+0x0000000005e1a000 	/System/Library/Frameworks/Metal.framework/Versions/A/Metal
+0x0000000005e1a000 	/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vImage.framework/Versions/A/vImage
+0x0000000005e1a000 	/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/vecLib
+0x0000000005e1a000 	/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libvDSP.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libvMisc.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libLAPACK.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libLinearAlgebra.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libSparseBLAS.dylib
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/GPUCompiler.framework/libmetal_timestamp.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libCoreFSCache.dylib
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/IOAccelerator.framework/Versions/A/IOAccelerator
+0x0000000005e1a000 	/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/ATS.framework/Versions/A/Resources/libFontParser.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/ATS.framework/Versions/A/Resources/libFontRegistry.dylib
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/AppleVPA.framework/Versions/A/AppleVPA
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/AppleJPEG.framework/Versions/A/AppleJPEG
+0x0000000005e1a000 	/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/libJPEG.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/libTIFF.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/libPng.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/libGIF.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/libJP2.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/libRadiance.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo
+0x0000000005e1a000 	/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGLU.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGFXShared.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGLImage.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libCVMSPluginSupport.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libCoreVMClient.dylib
+0x0000000005e1a000 	/usr/lib/libcups.2.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/Kerberos.framework/Versions/A/Kerberos
+0x0000000005e1a000 	/System/Library/Frameworks/GSS.framework/Versions/A/GSS
+0x0000000005e1a000 	/usr/lib/libresolv.9.dylib
+0x0000000005e1a000 	/usr/lib/libiconv.2.dylib
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/Heimdal.framework/Versions/A/Heimdal
+0x0000000005e1a000 	/usr/lib/libheimdal-asn1.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/OpenDirectory.framework/Versions/A/OpenDirectory
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/CommonAuth.framework/Versions/A/CommonAuth
+0x0000000005e1a000 	/System/Library/Frameworks/OpenDirectory.framework/Versions/A/Frameworks/CFOpenDirectory.framework/Versions/A/CFOpenDirectory
+0x0000000005e1a000 	/System/Library/Frameworks/SecurityFoundation.framework/Versions/A/SecurityFoundation
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/LanguageModeling.framework/Versions/A/LanguageModeling
+0x0000000005e1a000 	/usr/lib/libmarisa.dylib
+0x0000000005e1a000 	/usr/lib/libChineseTokenizer.dylib
+0x0000000005e1a000 	/usr/lib/libcmph.dylib
+0x0000000005e1a000 	/usr/lib/libcompression.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/ServiceManagement.framework/Versions/A/ServiceManagement
+0x0000000005e1a000 	/usr/lib/libxslt.1.dylib
+0x0000000005e1a000 	/System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/Ink.framework/Versions/A/Ink
+0x0000000005e1a000 	/usr/lib/libFosl_dynamic.dylib
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/FaceCore.framework/Versions/A/FaceCore
+0x0000000005e1a000 	/System/Library/Frameworks/OpenCL.framework/Versions/A/OpenCL
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/CrashReporterSupport.framework/Versions/A/CrashReporterSupport
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/IconServices.framework/Versions/A/IconServices
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Apple80211
+0x0000000005e1a000 	/System/Library/Frameworks/CoreWLAN.framework/Versions/A/CoreWLAN
+0x0000000005e1a000 	/System/Library/Frameworks/IOBluetooth.framework/Versions/A/IOBluetooth
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/CoreWiFi.framework/Versions/A/CoreWiFi
+0x0000000005e1a000 	/System/Library/Frameworks/CoreBluetooth.framework/Versions/A/CoreBluetooth
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/ChunkingLibrary.framework/Versions/A/ChunkingLibrary
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/DebugSymbols.framework/Versions/A/DebugSymbols
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/CoreSymbolication.framework/Versions/A/CoreSymbolication
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/Symbolication.framework/Versions/A/Symbolication
+0x0000000005e1a000 	/System/Library/PrivateFrameworks/SpeechRecognitionCore.framework/Versions/A/SpeechRecognitionCore
+0x000000010e200000 	/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/Home/jre/lib/server/libjvm.dylib
+0x0000000005e1a000 	/usr/lib/libstdc++.6.dylib
+0x000000010d93e000 	/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/Home/jre/lib/libverify.dylib
+0x000000010d94b000 	/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/Home/jre/lib/libjava.dylib
+0x000000010d985000 	/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/Home/jre/lib/libzip.dylib
+0x00000001364a1000 	/System/Library/Frameworks/JavaVM.framework/Frameworks/JavaRuntimeSupport.framework/JavaRuntimeSupport
+0x000000010d9e9000 	/System/Library/Frameworks/JavaVM.framework/Versions/A/Frameworks/JavaNativeFoundation.framework/Versions/A/JavaNativeFoundation
+0x00000001364bc000 	/System/Library/Frameworks/JavaVM.framework/Versions/A/JavaVM
+0x0000000005e1a000 	/System/Library/Frameworks/Carbon.framework/Versions/A/Carbon
+0x00000001364c9000 	/System/Library/PrivateFrameworks/JavaLaunching.framework/Versions/A/JavaLaunching
+0x0000000005e1a000 	/System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/CommonPanels.framework/Versions/A/CommonPanels
+0x0000000005e1a000 	/System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/Help.framework/Versions/A/Help
+0x0000000005e1a000 	/System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/ImageCapture.framework/Versions/A/ImageCapture
+0x0000000005e1a000 	/System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/OpenScripting.framework/Versions/A/OpenScripting
+0x0000000005e1a000 	/System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/Print.framework/Versions/A/Print
+0x0000000005e1a000 	/System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/SecurityHI.framework/Versions/A/SecurityHI
+0x0000000138123000 	/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/Home/jre/lib/libnet.dylib
+0x00000001385e5000 	/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/Home/jre/lib/libnio.dylib
+
+VM Arguments:
+jvm_args: -Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m -Dzinc.home=/Users/yuyinghao/git/github-spark-1.6-dag/build/zinc-0.3.5.3 
+java_command: com.typesafe.zinc.Nailgun 3030 0
+Launcher Type: SUN_STANDARD
+
+Environment Variables:
+JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/Home
+PATH=/opt/local/bin:/opt/local/sbin:/Library/Frameworks/Python.framework/Versions/2.7/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Frameworks/Python.framework/Versions/2.7/bin:/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7:/opt/X11/bin:/Library/TeX/texbin:/Users/yuyinghao/spark-1.6.1/bin:/Users/yuyinghao/spark-1.6.1/sbin:/Users/yuyinghao/spark-1.6.1/ec2:/Users/yuyinghao/Desktop/trace-analysis/trace-analysis-master:/Users/yuyinghao/spark-1.6.1:/usr/local/bin/hadoop/bin:/bin:/usr/local/bin/hadoop/sbin:/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/Home/bin:/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/bin
+SHELL=/bin/bash
+DISPLAY=/private/tmp/com.apple.launchd.XLS1TIlanz/org.macosforge.xquartz:0
+
+Signal Handlers:
+SIGSEGV: [libjvm.dylib+0x52daf1], sa_mask[0]=0xfffefeff, sa_flags=0x00000043
+SIGBUS: [libjvm.dylib+0x52daf1], sa_mask[0]=0xfffefeff, sa_flags=0x00000042
+SIGFPE: [libjvm.dylib+0x41f34e], sa_mask[0]=0xfffefeff, sa_flags=0x00000042
+SIGPIPE: [libjvm.dylib+0x41f34e], sa_mask[0]=0xfffefeff, sa_flags=0x00000042
+SIGXFSZ: [libjvm.dylib+0x41f34e], sa_mask[0]=0xfffefeff, sa_flags=0x00000042
+SIGILL: [libjvm.dylib+0x41f34e], sa_mask[0]=0xfffefeff, sa_flags=0x00000042
+SIGUSR1: SIG_DFL, sa_mask[0]=0x63807efb, sa_flags=0x00000000
+SIGUSR2: [libjvm.dylib+0x41ee40], sa_mask[0]=0x00000000, sa_flags=0x00000042
+SIGHUP: [libjvm.dylib+0x41d0d1], sa_mask[0]=0xfffefeff, sa_flags=0x00000042
+SIGINT: SIG_IGN, sa_mask[0]=0x00000000, sa_flags=0x00000000
+SIGTERM: [libjvm.dylib+0x41d0d1], sa_mask[0]=0xfffefeff, sa_flags=0x00000042
+SIGQUIT: [libjvm.dylib+0x41d0d1], sa_mask[0]=0xfffefeff, sa_flags=0x00000042
+
+
+---------------  S Y S T E M  ---------------
+
+OS:Bsduname:Darwin 15.0.0 Darwin Kernel Version 15.0.0: Wed Aug 26 16:57:32 PDT 2015; root:xnu-3247.1.106~1/RELEASE_X86_64 x86_64
+rlimit: STACK 8192k, CORE 0k, NPROC 709, NOFILE 10240, AS infinity
+load average:8.20 5.75 4.25
+
+CPU:total 4 (2 cores per cpu, 2 threads per core) family 6 model 61 stepping 4, cmov, cx8, fxsr, mmx, sse, sse2, sse3, ssse3, sse4.1, sse4.2, popcnt, avx, avx2, aes, erms, ht, tsc, tscinvbit
+
+Memory: 4k page, physical 8388608k(2097152k free)
+
+/proc/meminfo:
+
+
+vm_info: Java HotSpot(TM) 64-Bit Server VM (24.79-b02) for bsd-amd64 JRE (1.7.0_79-b15), built on Apr 10 2015 11:35:04 by "java_re" with gcc 4.2.1 (Based on Apple Inc. build 5658) (LLVM build 2336.11.00)
+
+time: Fri Jan 13 01:27:01 2017
+elapsed time: 780 seconds
+
