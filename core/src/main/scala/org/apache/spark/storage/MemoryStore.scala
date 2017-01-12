@@ -783,7 +783,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
 
         }
         else {
-          blockManager.peerLostBlocks += peerBlockId
+          blockManager.peerLostBlocks.synchronized {blockManager.peerLostBlocks += peerBlockId}
           stickyLog.write(s"Conservative: $peerBlockId is added to peerLostBlocks\n")
           // The peer block is not in the worker, record it in case it is cached in the future
           logInfo(s"yyh: $peerBlockId is added to the peerLostBlocks: ")
