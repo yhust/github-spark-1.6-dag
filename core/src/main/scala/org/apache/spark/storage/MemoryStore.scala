@@ -806,13 +806,13 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
   }
 
   def decreaseRDDRefCount(rddId: Int): Unit = {
-    if (blockManager.refProfile.contains(rddId)){
+    if (blockManager.refProfile.getOrElse(rddId, 0) > 0){
       blockManager.refProfile(rddId) -= 1
       stickyLog.write(s"Strict: Refcount of RDD $rddId is decreased by 1 in refProfile\n")
       logInfo(s"yyh: the ref count of $rddId in blockManager's refProfile is deducted " +
         s"to ${blockManager.refProfile(rddId)} due to strict all-or-nothing")
     }
-    if (blockManager.refProfile_online.contains(rddId)){
+    if (blockManager.refProfile_online.getOrElse(rddId, 0) > 0){
       blockManager.refProfile_online(rddId) -= 1
       stickyLog.write(s"Strict: Refcount of RDD $rddId is decreased by 1 in refProfile_online\n")
       logInfo(s"yyh: the ref count of $rddId in blockManager's refProfile_online is deducted " +
@@ -820,8 +820,8 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     }
     refMap.synchronized {
       refMap.foreach{ case (key: BlockId, value: Int) =>
-        if (key.asRDDId.toString.split("_")(1).toInt == rddId) {
-          stickyLog.write(s"Strict: Refcount of $key is decreased by 1\n")
+        if (key.asRDDId.toString.split("_")(1).toInt == rddId && value > 0) {
+          stickyLog.write(s"Strict: Refcount of $key is decreased to ${value-1}\n")
           logInfo(s"yyh: ref count of $key id is deducted to ${value-1}" +
             s"because of strict all-or-nothing")
           (key, value-1)
@@ -830,7 +830,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     }
     currentRefMap.synchronized{
       currentRefMap.foreach{ case (key: BlockId, value: Int) =>
-        if (key.asRDDId.toString.split("_")(1).toInt == rddId) {
+        if (key.asRDDId.toString.split("_")(1).toInt == rddId && value > 0) {
           logInfo(s"yyh: ref count of $key id is deducted to ${value-1}" +
             s"because of strict all-or-nothing")
           (key, value-1)
