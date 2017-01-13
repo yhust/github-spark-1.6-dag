@@ -678,6 +678,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     * Deduct the referenced count of the given blockId by 1
     */
   def deductRefCountByBlockIdHit(blockId: BlockId): Unit = {
+    blockManager.hitRDDBlocks.synchronized (blockManager.hitRDDBlocks += blockId)
     refMap.synchronized{
       refMap(blockId) -= 1
       val newRefCount = refMap(blockId)

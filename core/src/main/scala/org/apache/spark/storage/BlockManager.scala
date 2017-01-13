@@ -183,7 +183,13 @@ private[spark] class BlockManager(
   var peerLostBlocks = new mutable.MutableList[BlockId] // yyh for all-or-nothing property
   // for those blocks that have lost their peers
   // Be careful that currently we do not consider re-admission of their peers.
-  var decreaseRDDList = new mutable.MutableList[Int] // yyh for strict all-or-nothing
+  // var decreaseRDDList = new mutable.MutableList[Int] // yyh for strict all-or-nothing
+  // var hitBlockList = new mutable.MutableList[BlockId] // for record of effective hit
+  // var missBlockList = new mutable.MutableList[BlockId] // for record of effective hit
+  // rdd ID to the list of cache hit blocks: currently assume each block is only referenced once
+  var missRDDBlocks = mutable.MutableList[BlockId]()
+  var hitRDDBlocks = mutable.MutableList[BlockId]()
+
   private var hitCount = 0 // hit count of rdd blocks
   private var missCount = 0 // miss count of rdd blocks
   var diskRead = 0 // count of disk read
@@ -268,6 +274,9 @@ private[spark] class BlockManager(
     if (memoryStore.refMap.getOrElse(blockId, 0) > 0 // this block has remaining ref count
       && peers.contains(blockId.asRDDId.toString.split("_")(1).toInt)) {
       // if this block still has remaining ref count, it means its peer has not been evicted
+      missRDDBlocks.synchronized {
+        missRDDBlocks += blockId
+      }
       logInfo(s"yyh: $blockId is going to be written into the disk" +
         s" with nonzero ref count, notify the master of its loss")
       memoryStore.stickyLog.write(s"Report the loss of $blockId\n")
@@ -354,7 +363,8 @@ private[spark] class BlockManager(
   def reportCacheHit(): Unit = {
     logInfo(s"yyh: $blockManagerId reporting Cache hit to the master, " +
       s"hit $hitCount, miss $missCount")
-    if (!master.reportCacheHit(blockManagerId, List(hitCount, missCount, diskRead, diskWrite))) {
+    if (!master.reportCacheHit(blockManagerId, List(hitCount, missCount, diskRead, diskWrite),
+      hitRDDBlocks)) {
       logError(s"$blockManagerId failed to report Cache hit to master; giving up.")
       return
     }
