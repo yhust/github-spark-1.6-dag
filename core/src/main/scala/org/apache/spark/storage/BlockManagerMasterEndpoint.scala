@@ -64,6 +64,8 @@ class BlockManagerMasterEndpoint(
   var diskRead = 0
   var diskWrite = 0
   var totalReference = 0
+  var partition = 0
+  var totalMissBlockList = mutable.MutableList[BlockId]()
   private val refProfile = mutable.HashMap[Int, Int]() // yyh
   private val refProfile_By_Job = mutable.HashMap[Int, mutable.HashMap[Int, Int]]()
   private val appName = conf.getAppName.filter(!" ".contains(_))
@@ -190,8 +192,8 @@ class BlockManagerMasterEndpoint(
     case StartBroadcastJobId(jobId) =>
       broadcastJobDAG(jobId) // , refProfile_By_Job(jobId))
       context.reply(true)
-    case ReportCacheHit(blockManagerId, list) => // yyh
-      updateCacheHit(blockManagerId, list)
+    case ReportCacheHit(blockManagerId, list, missBlockList) => // yyh
+      updateCacheHit(blockManagerId, list, missBlockList)
       context.reply(true)
 
     case GetRefProfile(blockManagerId, slaveEndPoint) => // yyh
@@ -506,18 +508,20 @@ class BlockManagerMasterEndpoint(
     }
     // update the total reference count.
     this.synchronized{totalReference += refCount.foldLeft(0)(_ + _._2) * partitionNumber}
+    partition = partitionNumber
   }
 
   /**
-  private def broadcastRefCount(refCount: mutable.HashMap[Int, Int]): Unit = {
-    for (bm <- blockManagerInfo.values) {
-      bm.slaveEndpoint.askWithRetry(BroadcastRefCount(refCount))
-      logInfo(s"zcl: broadcasted refcount to $bm")
-    }
-  }
+    * private def broadcastRefCount(refCount: mutable.HashMap[Int, Int]): Unit = {
+    * for (bm <- blockManagerInfo.values) {
+    * bm.slaveEndpoint.askWithRetry(BroadcastRefCount(refCount))
+    * logInfo(s"zcl: broadcasted refcount to $bm")
+    * }
+    * }
   */
 
-  private def updateCacheHit(blockManagerId: BlockManagerId, list: List[Int]):
+  private def updateCacheHit(blockManagerId: BlockManagerId, list: List[Int],
+                             missBlockList: mutable.MutableList[BlockId]):
   Boolean = {
     // list (hitCount, missCount, diskRead, diskWrite)
     this.synchronized{
@@ -533,6 +537,7 @@ class BlockManagerMasterEndpoint(
       s"Disk Read count increased by ${list(2)}. now $diskRead" +
       s"Disk Write count increased by ${list(3)}. now $diskWrite"
     )
+    totalMissBlockList ++= missBlockList
     true
   }
 
@@ -568,17 +573,17 @@ class BlockManagerMasterEndpoint(
     }
 
     /**
-    val locations = blockLocations.get(blockId)
-    if (locations != null) {
-      locations.foreach { blockManagerId: BlockManagerId =>
-        val blockManager = blockManagerInfo.get(blockManagerId)
-        if (blockManager.isDefined) {
-          // yyh: tell the blockManager to decrease the ref count of the given block
-          logInfo(s"yyh: Telling $blockManager to decrease the ref count of $blockId")
-          blockManager.get.slaveEndpoint.ask[Boolean](DecreaseBlockRefCount(blockId))
-        }
-      }
-    }
+      * val locations = blockLocations.get(blockId)
+      * if (locations != null) {
+      * locations.foreach { blockManagerId: BlockManagerId =>
+      * val blockManager = blockManagerInfo.get(blockManagerId)
+      * if (blockManager.isDefined) {
+      * // yyh: tell the blockManager to decrease the ref count of the given block
+      * logInfo(s"yyh: Telling $blockManager to decrease the ref count of $blockId")
+      * blockManager.get.slaveEndpoint.ask[Boolean](DecreaseBlockRefCount(blockId))
+      * }
+      * }
+      * }
       */
   }
   private def notifyPeersStrictly(blockId: BlockId): Unit = {
@@ -588,21 +593,53 @@ class BlockManagerMasterEndpoint(
 
     /** TRY TO FIND THE LOCATION OF EACH BLOCK.
       * But we are not sure whether all the block status are reported to the master
-    val blocks = blockLocations.asScala.keys.flatMap(_.asRDDId).filter(_.rddId == rddId)
-    blocks.foreach { blockId =>
-      val bms: mutable.HashSet[BlockManagerId] = blockLocations.get(blockId)
-      bms.foreach{
-        bm =>
-          {
-            blockManagerInfo.get(bm)
-              .get.slaveEndpoint.ask[Boolean](DecreaseBlockRefCount(blockId))
-            logInfo(s"yyh: Telling $bm to decrease the ref count of $blockId")
-          }
-      }
-
-    }
+      * val blocks = blockLocations.asScala.keys.flatMap(_.asRDDId).filter(_.rddId == rddId)
+      * blocks.foreach { blockId =>
+      * val bms: mutable.HashSet[BlockManagerId] = blockLocations.get(blockId)
+      * bms.foreach{
+      * bm =>
+      * {
+      * blockManagerInfo.get(bm)
+      * .get.slaveEndpoint.ask[Boolean](DecreaseBlockRefCount(blockId))
+      * logInfo(s"yyh: Telling $bm to decrease the ref count of $blockId")
+      * }
+      * }
+      **
+      *}
       */
   }
+
+  def calculateEffectiveHit(missBlockList: mutable.MutableList[BlockId]): (Int, Int) = {
+    val missCount = mutable.HashMap[Int, Int]() // effective miss blocks of each rdd
+    for( blockId <- totalMissBlockList) {
+      val rddId = blockId.asRDDId.map(_.rddId).get
+      val index = blockId.asRDDId.toString.split("_")(2).stripSuffix(")").toInt
+      val peerRDDId = peerProfile(rddId)
+      val peerBlockId = new RDDBlockId(peerRDDId, index)
+      if (missCount.contains(rddId)) {
+        missCount(rddId) += 1
+      }
+      else {
+        missCount(rddId) = 1
+      }
+      if (!missBlockList.contains(peerBlockId)) {   // to avoid duplicated count
+        if (missCount.contains(peerRDDId)) {
+          missCount(peerRDDId) += 1
+        }
+        else {
+          missCount(peerRDDId) = 1
+        }
+      }
+    }
+    var taskHit = 0
+    var stageHit = 0
+    for((rddId, count) <- missCount) {
+      taskHit += partition - count
+      if(count == 0) (stageHit += 1)
+    }
+    (taskHit/2, stageHit/2) // each hit is counted twice
+  }
+
   override def onStop(): Unit = {
     val stopTime = System.currentTimeMillis
     val duration = stopTime - startTime
@@ -618,6 +655,8 @@ class BlockManagerMasterEndpoint(
     val fw = new FileWriter("result.txt", true) // true means append mode
     fw.write(s"AppName: $appName, Runtime: $duration\n")
     fw.write(s"RDD Hit\t$RDDHit\tRDD Miss\t$RDDMiss\n")
+    val (taskHit, stageHit) = calculateEffectiveHit(totalMissBlockList)
+    fw.write(s"Task Hit\t$taskHit\tStage Hit\t$stageHit\n")
     fw.close()
     askThreadPool.shutdownNow()
   }
