@@ -65,7 +65,7 @@ class BlockManagerMasterEndpoint(
   var diskWrite = 0
   var totalReference = 0
   var partition = 0
-  var totalMissBlockList = mutable.MutableList[BlockId]()
+  var totalHitBlockList = mutable.MutableList[BlockId]()
   private val refProfile = mutable.HashMap[Int, Int]() // yyh
   private val refProfile_By_Job = mutable.HashMap[Int, mutable.HashMap[Int, Int]]()
   private val appName = conf.getAppName.filter(!" ".contains(_))
@@ -192,8 +192,8 @@ class BlockManagerMasterEndpoint(
     case StartBroadcastJobId(jobId) =>
       broadcastJobDAG(jobId) // , refProfile_By_Job(jobId))
       context.reply(true)
-    case ReportCacheHit(blockManagerId, list, missBlockList) => // yyh
-      updateCacheHit(blockManagerId, list, missBlockList)
+    case ReportCacheHit(blockManagerId, list, hitBlockList) => // yyh
+      updateCacheHit(blockManagerId, list, hitBlockList)
       context.reply(true)
 
     case GetRefProfile(blockManagerId, slaveEndPoint) => // yyh
@@ -521,7 +521,7 @@ class BlockManagerMasterEndpoint(
   */
 
   private def updateCacheHit(blockManagerId: BlockManagerId, list: List[Int],
-                             missBlockList: mutable.MutableList[BlockId]):
+                             hitBlockList: mutable.MutableList[BlockId]):
   Boolean = {
     // list (hitCount, missCount, diskRead, diskWrite)
     this.synchronized{
@@ -537,7 +537,7 @@ class BlockManagerMasterEndpoint(
       s"Disk Read count increased by ${list(2)}. now $diskRead" +
       s"Disk Write count increased by ${list(3)}. now $diskWrite"
     )
-    totalMissBlockList ++= missBlockList
+    totalHitBlockList ++= hitBlockList
     true
   }
 
@@ -609,35 +609,30 @@ class BlockManagerMasterEndpoint(
       */
   }
 
-  def calculateEffectiveHit(missBlockList: mutable.MutableList[BlockId]): (Int, Int) = {
-    val missCount = mutable.HashMap[Int, Int]() // effective miss blocks of each rdd
-    for( blockId <- totalMissBlockList) {
+  def calculateEffectiveHit(): (Int, Int) = {
+    val hitCount = mutable.HashMap[Int, Int]() // effective hit blocks of each rdd
+    for( blockId <- totalHitBlockList) {
       val rddId = blockId.asRDDId.map(_.rddId).get
       val index = blockId.asRDDId.toString.split("_")(2).stripSuffix(")").toInt
       val peerRDDId = peerProfile(rddId)
       val peerBlockId = new RDDBlockId(peerRDDId, index)
-      if (missCount.contains(rddId)) {
-        missCount(rddId) += 1
-      }
-      else {
-        missCount(rddId) = 1
-      }
-      if (!missBlockList.contains(peerBlockId)) {   // to avoid duplicated count
-        if (missCount.contains(peerRDDId)) {
-          missCount(peerRDDId) += 1
+      if (totalHitBlockList.contains(peerBlockId)) {
+        printf("Hit count of RDD Id %s increased 1 by %s\n", rddId, blockId.toString)
+        if (hitCount.contains(rddId)) {
+          hitCount(rddId) += 1
         }
         else {
-          missCount(peerRDDId) = 1
+          hitCount(rddId) = 1
         }
       }
     }
     var taskHit = 0
     var stageHit = 0
-    for((rddId, count) <- missCount) {
-      taskHit += partition - count
-      if(count == 0) (stageHit += 1)
+    for((rddId, count) <- hitCount) {
+      taskHit += count
+      if(count == partition) (stageHit += 1)
     }
-    (taskHit/2, stageHit/2) // each hit is counted twice
+    (taskHit/2, stageHit/2) // each hit is counted twice for ZippedRDD2
   }
 
   override def onStop(): Unit = {
@@ -655,7 +650,7 @@ class BlockManagerMasterEndpoint(
     val fw = new FileWriter("result.txt", true) // true means append mode
     fw.write(s"AppName: $appName, Runtime: $duration\n")
     fw.write(s"RDD Hit\t$RDDHit\tRDD Miss\t$RDDMiss\n")
-    val (taskHit, stageHit) = calculateEffectiveHit(totalMissBlockList)
+    val (taskHit, stageHit) = calculateEffectiveHit()
     fw.write(s"Task Hit\t$taskHit\tStage Hit\t$stageHit\n")
     fw.close()
     askThreadPool.shutdownNow()
