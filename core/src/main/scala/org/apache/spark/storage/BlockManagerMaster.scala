@@ -228,8 +228,8 @@ class BlockManagerMaster(
     * yyh, report to the driver the hit and miss count on this blockmanager
     */
   def reportCacheHit(blockManagerId: BlockManagerId, list: List[Int],
-                     missBlockList: mutable.MutableList[BlockId]): Boolean = {
-    driverEndpoint.askWithRetry[Boolean](ReportCacheHit(blockManagerId, list, missBlockList))
+                     hitBlockList: mutable.MutableList[BlockId]): Boolean = {
+    driverEndpoint.askWithRetry[Boolean](ReportCacheHit(blockManagerId, list, hitBlockList))
   }
 
   /**
