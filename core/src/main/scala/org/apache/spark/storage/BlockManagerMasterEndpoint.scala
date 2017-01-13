@@ -634,10 +634,10 @@ class BlockManagerMasterEndpoint(
     var taskHit = 0
     var stageHit = 0
     for((rddId, count) <- missCount) {
-      taskHit += count
-      if(count == partition) (stageHit += 1)
+      taskHit += partition - count
+      if(count == 0) (stageHit += 1)
     }
-    (taskHit/2, stageHit/2)
+    (taskHit/2, stageHit/2) // each hit is counted twice
   }
 
   override def onStop(): Unit = {
