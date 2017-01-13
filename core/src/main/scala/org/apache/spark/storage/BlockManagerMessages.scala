@@ -139,7 +139,7 @@ private[spark] object BlockManagerMessages {
 
   // yyh: report the cache hit and miss to the master on stop of the block manager on slaves
   case class ReportCacheHit(blockManagerId: BlockManagerId, list: List[Int],
-                            missBlockList: mutable.MutableList[BlockId])
+                            hitBlockList: mutable.MutableList[BlockId])
     extends ToBlockManagerMaster
 
   // yyh: ask for app-DAG, job-DAG, and peers information from the master

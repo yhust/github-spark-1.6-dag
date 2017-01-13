@@ -188,6 +188,7 @@ private[spark] class BlockManager(
   // var missBlockList = new mutable.MutableList[BlockId] // for record of effective hit
   // rdd ID to the list of cache hit blocks: currently assume each block is only referenced once
   var missRDDBlocks = mutable.MutableList[BlockId]()
+  var hitRDDBlocks = mutable.MutableList[BlockId]()
 
   private var hitCount = 0 // hit count of rdd blocks
   private var missCount = 0 // miss count of rdd blocks
@@ -363,7 +364,7 @@ private[spark] class BlockManager(
     logInfo(s"yyh: $blockManagerId reporting Cache hit to the master, " +
       s"hit $hitCount, miss $missCount")
     if (!master.reportCacheHit(blockManagerId, List(hitCount, missCount, diskRead, diskWrite),
-      missRDDBlocks)) {
+      hitRDDBlocks)) {
       logError(s"$blockManagerId failed to report Cache hit to master; giving up.")
       return
     }
