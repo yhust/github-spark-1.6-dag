@@ -651,7 +651,9 @@ class BlockManagerMasterEndpoint(
     fw.write(s"AppName: $appName, Runtime: $duration\n")
     fw.write(s"RDD Hit\t$RDDHit\tRDD Miss\t$RDDMiss\n")
     val (taskHit, stageHit) = calculateEffectiveHit()
+    printf("Effective Hit Calculated\n")
     fw.write(s"Task Hit\t$taskHit\tStage Hit\t$stageHit\n")
+
     fw.close()
     askThreadPool.shutdownNow()
   }
