@@ -519,8 +519,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       var freedMemory = 0L
       val rddToAdd = blockId.flatMap(getRddId)
       val selectedBlocks = new ArrayBuffer[BlockId]
-      logInfo(s"yyh: LRC: Try to free space for $blockId")
-      // logInfo(s"yyh: LRU: Free space for block $blockId, current entries $entries")
+      logInfo(s"yyh: LRC-conservative: Try to free space for $blockId")
       // be cautious to print all the entries, for concurrency issues
       // This is synchronized to ensure that the set of entries is not changed
       // (because of getValue or getBytes) while traversing the iterator, as that
@@ -632,6 +631,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       blockId: BlockId,
       memory: Long,
       droppedBlocks: mutable.Buffer[(BlockId, BlockStatus)]): Boolean = {
+    logInfo(s"yyh: reserve Unroll Memory for $blockId")
     memoryManager.synchronized {
       val success = memoryManager.acquireUnrollMemory(blockId, memory, droppedBlocks)
       if (success) {
