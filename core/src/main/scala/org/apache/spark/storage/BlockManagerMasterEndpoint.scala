@@ -65,6 +65,8 @@ class BlockManagerMasterEndpoint(
   var diskWrite = 0
   var totalReference = 0
   var partition = 0
+  var taskHit = 0
+  var stageHit = 0
   var totalHitBlockList = mutable.MutableList[BlockId]()
   private val refProfile = mutable.HashMap[Int, Int]() // yyh
   private val refProfile_By_Job = mutable.HashMap[Int, mutable.HashMap[Int, Int]]()
@@ -537,7 +539,9 @@ class BlockManagerMasterEndpoint(
       s"Disk Read count increased by ${list(2)}. now $diskRead" +
       s"Disk Write count increased by ${list(3)}. now $diskWrite"
     )
-    totalHitBlockList ++= hitBlockList
+    this.synchronized { totalHitBlockList ++=  hitBlockList}
+    // printf(s"totalHitBlockList: $totalHitBlockList \n")
+    // calculateEffectiveHit(hitBlockList)
     true
   }
 
@@ -609,6 +613,36 @@ class BlockManagerMasterEndpoint(
       */
   }
 
+  def calculateEffectiveHit(hitBlockList: mutable.MutableList[BlockId]): Unit = {
+    printf(s"this hitBlockList: $hitBlockList")
+    val hitCount = mutable.HashMap[Int, Int]() // effective hit blocks of each rdd
+    for( blockId <- hitBlockList) {
+      val rddId = blockId.asRDDId.map(_.rddId).get
+      val index = blockId.asRDDId.toString.split("_")(2).stripSuffix(")").toInt
+      val peerRDDId = peerProfile(rddId)
+      val peerBlockId = new RDDBlockId(peerRDDId, index)
+      if (hitBlockList.contains(peerBlockId)) {
+        printf("Hit count of RDD Id %s increased 1 by %s\n", rddId, blockId.toString)
+        if (hitCount.contains(rddId)) {
+          hitCount(rddId) += 1
+        }
+        else {
+          hitCount(rddId) = 1
+        }
+      }
+    }
+    var thisTaskHit = 0
+    var thisStageHit = 0
+    for((rddId, count) <- hitCount) {
+      thisTaskHit += count
+      if(count == partition) (thisStageHit += 1)
+    }
+    this.synchronized {
+      taskHit += thisTaskHit / 2
+      stageHit += thisStageHit / 2
+    } // each hit is counted twice for ZippedRDD2
+  }
+
   def calculateEffectiveHit(): (Int, Int) = {
     val hitCount = mutable.HashMap[Int, Int]() // effective hit blocks of each rdd
     for( blockId <- totalHitBlockList) {
@@ -632,7 +666,11 @@ class BlockManagerMasterEndpoint(
       taskHit += count
       if(count == partition) (stageHit += 1)
     }
-    (taskHit/2, stageHit/2) // each hit is counted twice for ZippedRDD2
+    this.synchronized {
+      taskHit += taskHit / 2
+      stageHit += stageHit / 2
+    } // each hit is counted twice for ZippedRDD2
+    (taskHit, stageHit)
   }
 
   override def onStop(): Unit = {
@@ -650,9 +688,19 @@ class BlockManagerMasterEndpoint(
     val fw = new FileWriter("result.txt", true) // true means append mode
     fw.write(s"AppName: $appName, Runtime: $duration\n")
     fw.write(s"RDD Hit\t$RDDHit\tRDD Miss\t$RDDMiss\n")
-    val (taskHit, stageHit) = calculateEffectiveHit()
-    fw.write(s"Task Hit\t$taskHit\tStage Hit\t$stageHit\n")
+    printf(s"totalHitBlockList: $totalHitBlockList")
+    // val (taskHit, stageHit) = calculateEffectiveHit()
+
+    val fw_hit = new FileWriter("hitBlockList.txt", false)
+    for (blockId <- totalHitBlockList) {
+      fw_hit.write(blockId + "\n")
+    }
+    printf("Effective Hit Calculated\n")
+
+    // fw.write(s"Task Hit\t$taskHit\tStage Hit\t$stageHit\n")
+
     fw.close()
+    fw_hit.close()
     askThreadPool.shutdownNow()
   }
 }
