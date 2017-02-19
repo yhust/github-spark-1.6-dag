@@ -86,6 +86,7 @@ private[memory] class StorageMemoryPool(lock: Object) extends MemoryPool(lock) w
     assert(numBytesToFree >= 0)
     assert(memoryUsed <= poolSize)
     if (numBytesToFree > 0) {
+      logInfo(s"yyh: To call evictBlocksToFreeSpace")
       memoryStore.evictBlocksToFreeSpace(Some(blockId), numBytesToFree, evictedBlocks)
       // Register evicted blocks, if any, with the active task metrics
       Option(TaskContext.get()).foreach { tc =>
