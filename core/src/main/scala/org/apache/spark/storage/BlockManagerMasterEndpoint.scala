@@ -563,7 +563,7 @@ class BlockManagerMasterEndpoint(
     else {
       // For conservative all-or-nothing, decrease the ref count of the corresponding block
       // val peerBlockId = new RDDBlockId(peerRDDId.get, index)
-      // notifyPeersConservatively(blockId)
+      notifyPeersConservatively(blockId)
 
       // For strict all-or-nothing, decrease the ref count of all the blocks of both rdds
       // notifyPeersStrictly(blockId)

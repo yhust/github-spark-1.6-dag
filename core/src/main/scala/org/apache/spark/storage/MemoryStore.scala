@@ -755,17 +755,18 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     refMap.synchronized {
       // the refcount of itself should be zero. Here we do not consider re-admission
       if (refMap.contains(blockId)) {
-        refMap(blockId) -= 1
-        stickyLog.write(s"Conservative: Refcount of $blockId is decreased by 1\n")
-        logInfo(s"yyh: ref count of $blockId is deducted to ${refMap(blockId)}" +
-          s" because of conservative all-or-nothing")
+        // refMap(blockId) -= 1
+        // stickyLog.write(s"Conservative: Refcount of $blockId is decreased by 1\n")
+        // logInfo(s"yyh: ref count of $blockId is deducted to ${refMap(blockId)}" +
+        //   s" because of conservative all-or-nothing")
         // This block must have been generated somewhere,
         // so no need to record it in the peerLostBlocks
       }
     }
     currentRefMap.synchronized{
       if (currentRefMap.contains(blockId)){
-        currentRefMap(blockId) -= 1
+       //  currentRefMap(blockId) -= 1
+
       }
     }
 
@@ -777,22 +778,22 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       val peerBlockId = new RDDBlockId(peerRDDId, index)
       refMap.synchronized {
         if (refMap.contains(peerBlockId)) {
-          refMap(peerBlockId) -= 1
-          stickyLog.write(s"Conservative: Refcount of $peerBlockId is decreased by 1\n")
-          logInfo(s"yyh: ref count of $peerBlockId is deducted to ${refMap(peerBlockId)} " +
-            s"because of conservative all-or-nothing")
+         // refMap(peerBlockId) -= 1
+          // stickyLog.write(s"Conservative: Refcount of $peerBlockId is decreased by 1\n")
+          // logInfo(s"yyh: ref count of $peerBlockId is deducted to ${refMap(peerBlockId)} " +
+            // s"because of conservative all-or-nothing")
 
         }
         else {
-          blockManager.peerLostBlocks.synchronized {blockManager.peerLostBlocks += peerBlockId}
-          stickyLog.write(s"Conservative: $peerBlockId is added to peerLostBlocks\n")
+         //  blockManager.peerLostBlocks.synchronized {blockManager.peerLostBlocks += peerBlockId}
+            // stickyLog.write(s"Conservative: $peerBlockId is added to peerLostBlocks\n")
           // The peer block is not in the worker, record it in case it is cached in the future
-          logInfo(s"yyh: $peerBlockId is added to the peerLostBlocks: ")
+         // logInfo(s"yyh: $peerBlockId is added to the peerLostBlocks: ")
         }
       }
       currentRefMap.synchronized {
         if (currentRefMap.contains(peerBlockId)) {
-          currentRefMap(peerBlockId) -= 1
+          // currentRefMap(peerBlockId) -= 1
         }
       }
     }
