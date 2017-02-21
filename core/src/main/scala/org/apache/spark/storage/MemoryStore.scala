@@ -755,6 +755,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     refMap.synchronized {
       // the refcount of itself should be zero. Here we do not consider re-admission
       if (refMap.contains(blockId)) {
+          print(blockId)
         // refMap(blockId) -= 1
         // stickyLog.write(s"Conservative: Refcount of $blockId is decreased by 1\n")
         // logInfo(s"yyh: ref count of $blockId is deducted to ${refMap(blockId)}" +
@@ -765,6 +766,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
     }
     currentRefMap.synchronized{
       if (currentRefMap.contains(blockId)){
+        print(blockId)
        //  currentRefMap(blockId) -= 1
 
       }
@@ -778,6 +780,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       val peerBlockId = new RDDBlockId(peerRDDId, index)
       refMap.synchronized {
         if (refMap.contains(peerBlockId)) {
+          print(peerBlockId)
          // refMap(peerBlockId) -= 1
           // stickyLog.write(s"Conservative: Refcount of $peerBlockId is decreased by 1\n")
           // logInfo(s"yyh: ref count of $peerBlockId is deducted to ${refMap(peerBlockId)} " +
@@ -793,6 +796,7 @@ private[spark] class MemoryStore(blockManager: BlockManager, memoryManager: Memo
       }
       currentRefMap.synchronized {
         if (currentRefMap.contains(peerBlockId)) {
+          print(peerBlockId)
           // currentRefMap(peerBlockId) -= 1
         }
       }
